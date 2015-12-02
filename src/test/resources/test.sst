@@ -1,0 +1,20 @@
+/**
+ * A test class to scan.
+ */
+class NiceClassName6 {
+    final int const1 = 123;
+    final int const2 = const1 * const1;
+    int var1;
+
+    public void setVar1(int x) {
+        var1 = x;
+    }
+
+    public int getVar1() {
+        return var1;
+    }
+
+    public void incrementVar1() {
+        var1 = getVar1() + 1;
+    }
+}
