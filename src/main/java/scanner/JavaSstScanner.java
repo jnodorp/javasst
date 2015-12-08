@@ -87,7 +87,7 @@ public class JavaSstScanner implements Iterator<Symbol> {
                 symbol = SymbolType.SEMICOLON;
                 break;
             case '(':
-                symbol = SymbolType.PARENTHESES_OPEN;
+                symbol = SymbolType.PARENTHESIS_OPEN;
                 break;
             case ')':
                 symbol = SymbolType.PARENTHESIS_CLOSE;

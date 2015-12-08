@@ -2,10 +2,6 @@ package scanner;
 
 import org.junit.Before;
 import org.junit.Test;
-import scanner.Input;
-import scanner.JavaSstScanner;
-import scanner.Symbol;
-import scanner.SymbolType;
 
 import java.io.File;
 import java.util.Iterator;
@@ -122,7 +118,7 @@ public class JavaSstScannerTest {
         assertEquals(SymbolType.PUBLIC, scanner.next().getType());
         assertEquals(SymbolType.VOID, scanner.next().getType());
         assertEquals(SymbolType.IDENT, scanner.next().getType());
-        assertEquals(SymbolType.PARENTHESES_OPEN, scanner.next().getType());
+        assertEquals(SymbolType.PARENTHESIS_OPEN, scanner.next().getType());
         assertEquals(SymbolType.INT, scanner.next().getType());
         assertEquals(SymbolType.IDENT, scanner.next().getType());
         assertEquals(SymbolType.PARENTHESIS_CLOSE, scanner.next().getType());
@@ -141,7 +137,7 @@ public class JavaSstScannerTest {
         assertEquals(SymbolType.PUBLIC, scanner.next().getType());
         assertEquals(SymbolType.INT, scanner.next().getType());
         assertEquals(SymbolType.IDENT, scanner.next().getType());
-        assertEquals(SymbolType.PARENTHESES_OPEN, scanner.next().getType());
+        assertEquals(SymbolType.PARENTHESIS_OPEN, scanner.next().getType());
         assertEquals(SymbolType.PARENTHESIS_CLOSE, scanner.next().getType());
         assertEquals(SymbolType.CURLY_BRACE_OPEN, scanner.next().getType());
 
@@ -157,7 +153,7 @@ public class JavaSstScannerTest {
         assertEquals(SymbolType.PUBLIC, scanner.next().getType());
         assertEquals(SymbolType.VOID, scanner.next().getType());
         assertEquals(SymbolType.IDENT, scanner.next().getType());
-        assertEquals(SymbolType.PARENTHESES_OPEN, scanner.next().getType());
+        assertEquals(SymbolType.PARENTHESIS_OPEN, scanner.next().getType());
         assertEquals(SymbolType.PARENTHESIS_CLOSE, scanner.next().getType());
         assertEquals(SymbolType.CURLY_BRACE_OPEN, scanner.next().getType());
 
@@ -165,7 +161,7 @@ public class JavaSstScannerTest {
         assertEquals(SymbolType.IDENT, scanner.next().getType());
         assertEquals(SymbolType.EQUALS, scanner.next().getType());
         assertEquals(SymbolType.IDENT, scanner.next().getType());
-        assertEquals(SymbolType.PARENTHESES_OPEN, scanner.next().getType());
+        assertEquals(SymbolType.PARENTHESIS_OPEN, scanner.next().getType());
         assertEquals(SymbolType.PARENTHESIS_CLOSE, scanner.next().getType());
         assertEquals(SymbolType.PLUS, scanner.next().getType());
         assertEquals(SymbolType.NUMBER, scanner.next().getType());

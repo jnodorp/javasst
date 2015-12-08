@@ -10,19 +10,19 @@ import java.util.Optional;
 public class SymbolTable {
 
     /**
-     * The head.
+     * The {@link ParserObject}s.
      */
-    private final ParserObject head;
+    private final List<ParserObject> parserObjects;
 
     /**
      * The enclosing symbol table.
      */
-    private final SymbolTable enclose;
+    private SymbolTable enclose;
 
     /**
-     * The {@link ParserObject}s.
+     * The head.
      */
-    private final List<ParserObject> parserObjects;
+    private ParserObject head;
 
     /**
      * Create a new symbol table.
@@ -46,12 +46,30 @@ public class SymbolTable {
     }
 
     /**
+     * Set the head.
+     *
+     * @param head The head.
+     */
+    public void setHead(final ParserObject head) {
+        this.head = head;
+    }
+
+    /**
      * Get the enclosing symbol table.
      *
      * @return The enclosing symbol table.
      */
     public SymbolTable getEnclose() {
         return enclose;
+    }
+
+    /**
+     * Set the enclosing symbol table.
+     *
+     * @param enclose The enclosing symbol table.
+     */
+    public void setEnclose(final SymbolTable enclose) {
+        this.enclose = enclose;
     }
 
     /**

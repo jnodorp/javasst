@@ -10,20 +10,17 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import static scanner.SymbolType.*;
+
 /**
  * A parser for Java SST.
  */
-public class JavaSstParser implements Parser {
+public class JavaSstParser extends Parser {
 
     /**
-     * The scanner.
+     * The logger.
      */
-    private final Iterator<Symbol> scanner;
-
-    /**
-     * The {@link Symbol}.
-     */
-    private Symbol symbol;
+    private static final Logger LOGGER = Logger.getLogger(JavaSstParser.class.getName());
 
     /**
      * The {@link SymbolTable}.
@@ -35,130 +32,162 @@ public class JavaSstParser implements Parser {
      *
      * @param scanner The scanner.
      */
-    public JavaSstParser(Iterator<Symbol> scanner) {
-        this.scanner = scanner;
+    public JavaSstParser(final Iterator<Symbol> scanner) {
+        super(scanner);
+
+        this.symbolTable = new SymbolTable(null, null);
     }
 
+    /**
+     * Class: {@code class} {@code identifier} {@link #classBody()}.
+     */
     private void clazz() {
-        assertCurrent(SymbolType.CLASS);
-        final String className = symbol.getIdentifier();
-        assertCurrent(SymbolType.IDENT);
+        LOGGER.info("clazz");
 
-        ParserObject p = new ParserObjectClass(null, null, null, null, null);
+        symbol().is(CLASS).once();
+        final String className = symbol.getIdentifier();
+        symbol().is(IDENT).once();
+
+        // Create the {@link SymbolTable} for the class.
+        final SymbolTable oldSymbolTable = symbolTable;
+        symbolTable = new SymbolTable(null, oldSymbolTable);
+
+        // Create the {@link ParserObject}.
+        final ParserObject p = new ParserObjectClass(null, null, null, null, symbolTable);
         p.setName(className);
         p.setNext(null);
-        symbolTable = new SymbolTable(p, null);
+
+        oldSymbolTable.setHead(p);
 
         classBody();
+
+        // Reset {@link SymbolTable} when leaving scope.
+        symbolTable = oldSymbolTable;
     }
 
+    /**
+     * Class body: &#123; {@link #declarations()} &#125;.
+     */
     private void classBody() {
-        assertCurrent(SymbolType.CURLY_BRACE_OPEN);
+        LOGGER.info("START: classBody");
+
+        symbol().is(CURLY_BRACE_OPEN).once();
         declarations();
-        assertCurrent(SymbolType.CURLY_BRACE_CLOSE);
+        symbol().is(CURLY_BRACE_CLOSE).once();
+
+        LOGGER.info("END: classBody");
+    }
+
+    private void constant() {
+        LOGGER.info("START: constant");
+
+        symbol().is(FINAL).once();
+        type();
+        symbol().is(IDENT).once();
+        symbol().is(EQUALS).once();
+        expression();
+        symbol().is(SEMICOLON).once();
+
+        LOGGER.info("END: constant");
+    }
+
+    private void variableDeclaration() {
+        LOGGER.info("START: variableDeclaration");
+
+        type();
+        symbol().is(IDENT).once();
+        symbol().is(SEMICOLON).once();
+
+        LOGGER.info("END: variableDeclaration");
     }
 
     private void declarations() {
-        while (SymbolType.FINAL == symbol.getType()) {
-            assertCurrent(SymbolType.FINAL);
-            type();
-            assertCurrent(SymbolType.IDENT);
-            assertCurrent(SymbolType.EQUALS);
-            expression();
-            assertCurrent(SymbolType.SEMICOLON);
-        }
+        LOGGER.info("START: declarations");
 
-        while (first("type").contains(symbol.getType())) {
-            type();
-            assertCurrent(SymbolType.IDENT);
-            assertCurrent(SymbolType.SEMICOLON);
-        }
+        symbol().is(FINAL).repeat(this::constant);
+        symbol().is(first("type")).repeat(this::variableDeclaration);
+        symbol().is(first("method_declaration")).repeat(this::methodDeclaration);
 
-        while (first("method_declaration").contains(symbol.getType())) {
-            methodDeclaration();
-        }
+        LOGGER.info("END: declarations");
     }
 
     private void methodDeclaration() {
+        LOGGER.info("START: methodDeclaration");
+
         methodHead();
         methodBody();
     }
 
     private void methodHead() {
-        assertCurrent(SymbolType.PUBLIC);
+        symbol().is(PUBLIC).once();
         methodType();
-        assertCurrent(SymbolType.IDENT);
+        symbol().is(IDENT).once();
         formalParameters();
     }
 
     private void methodType() {
-        if (SymbolType.VOID == symbol.getType()) {
-            assertCurrent(SymbolType.VOID);
+        if (VOID == symbol.getType()) {
+            next();
         } else if (first("type").contains(symbol.getType())) {
             type();
         } else {
-            error(SymbolType.VOID);
+            error(VOID, INT);
         }
     }
 
     private void formalParameters() {
-        assertCurrent(SymbolType.PARENTHESES_OPEN);
-
-        if (first("fp_section").contains(symbol.getType())) {
+        System.out.println(symbol.toString());
+        symbol().is(PARENTHESIS_OPEN).once();
+        System.out.println(symbol.toString());
+        symbol().is(first("fp_section")).optional(() -> {
             fpSection();
-            while (SymbolType.COMMA == symbol.getType()) {
-                next();
-                fpSection();
-            }
-        }
 
-        assertCurrent(SymbolType.PARENTHESIS_CLOSE);
+            symbol().is(COMMA).repeat(() -> {
+                // next(); // FIXME
+                fpSection();
+            });
+        });
+
+        symbol().is(PARENTHESIS_CLOSE).once();
     }
 
     private void fpSection() {
         type();
-        assertCurrent(SymbolType.IDENT);
+        symbol().is(IDENT).once();
     }
 
     private void methodBody() {
-        assertCurrent(SymbolType.CURLY_BRACE_OPEN);
-
-        while (first("local_declaration").contains(symbol.getType())) {
-            localDeclaration();
-        }
-
+        symbol().is(CURLY_BRACE_OPEN).once();
+        symbol().is(first("local_declaration")).repeat(this::localDeclaration);
         statementSequence();
-        assertCurrent(SymbolType.CURLY_BRACE_CLOSE);
+        symbol().is(CURLY_BRACE_CLOSE).once();
     }
 
     private void localDeclaration() {
         type();
-        assertCurrent(SymbolType.IDENT);
-        assertCurrent(SymbolType.SEMICOLON);
+        symbol().is(IDENT).once();
+        symbol().is(SEMICOLON).once();
     }
 
     private void statementSequence() {
         statement();
-
-        while (first("statement").contains(symbol.getType())) {
-            statement();
-        }
+        symbol().is(first("statement")).repeat(this::statement);
     }
 
     private void statement() {
         // Could be an assignment or a procedure call.
-        if (SymbolType.IDENT == symbol.getType()) {
-            assertCurrent(SymbolType.IDENT);
+        if (IDENT == symbol.getType()) {
+            next();
 
-            if (SymbolType.PARENTHESES_OPEN == symbol.getType()) {
+            if (PARENTHESIS_OPEN == symbol.getType()) {
                 actualParameters();
-                assertCurrent(SymbolType.SEMICOLON);
-            } else if (SymbolType.EQUALS == symbol.getType()) {
-                assertCurrent(SymbolType.EQUALS);
+                symbol().is(SEMICOLON).once();
+            } else if (EQUALS == symbol.getType()) {
+                symbol().is(EQUALS).once();
                 expression();
-                assertCurrent(SymbolType.SEMICOLON);
+                symbol().is(SEMICOLON).once();
             } else {
-                error(SymbolType.PARENTHESES_OPEN, SymbolType.EQUALS);
+                error(PARENTHESIS_OPEN, EQUALS);
             }
         } else if (first("if_statement").contains(symbol.getType())) {
             ifStatement();
@@ -167,125 +196,103 @@ public class JavaSstParser implements Parser {
         } else if (first("return_statement").contains(symbol.getType())) {
             returnStatement();
         } else {
-            error(SymbolType.IDENT, SymbolType.IF, SymbolType.WHILE, SymbolType.RETURN);
+            error(IDENT, IF, WHILE, RETURN);
         }
     }
 
     private void type() {
-        assertCurrent(SymbolType.INT);
+        symbol().is(INT).once();
     }
 
     private void internProcedureCall() {
-        assertCurrent(SymbolType.IDENT);
+        symbol().is(IDENT).once();
         actualParameters();
     }
 
     private void ifStatement() {
-        assertCurrent(SymbolType.IF);
-        assertCurrent(SymbolType.PARENTHESES_OPEN);
+        symbol().is(IF).once();
+        symbol().is(PARENTHESIS_OPEN).once();
         expression();
-        assertCurrent(SymbolType.PARENTHESIS_CLOSE);
-        assertCurrent(SymbolType.CURLY_BRACE_OPEN);
+        symbol().is(PARENTHESIS_CLOSE).once();
+        symbol().is(CURLY_BRACE_OPEN).once();
         statementSequence();
-        assertCurrent(SymbolType.CURLY_BRACE_CLOSE);
-        assertCurrent(SymbolType.ELSE);
-        assertCurrent(SymbolType.CURLY_BRACE_OPEN);
+        symbol().is(CURLY_BRACE_CLOSE).once();
+        symbol().is(ELSE).once();
+        symbol().is(CURLY_BRACE_OPEN).once();
         statementSequence();
-        assertCurrent(SymbolType.CURLY_BRACE_CLOSE);
+        symbol().is(CURLY_BRACE_CLOSE).once();
     }
 
     private void whileStatement() {
-        assertCurrent(SymbolType.WHILE);
-        assertCurrent(SymbolType.PARENTHESES_OPEN);
+        symbol().is(WHILE).once();
+        symbol().is(PARENTHESIS_OPEN).once();
         expression();
-        assertCurrent(SymbolType.PARENTHESIS_CLOSE);
-        assertCurrent(SymbolType.CURLY_BRACE_OPEN);
+        symbol().is(PARENTHESIS_CLOSE).once();
+        symbol().is(CURLY_BRACE_OPEN).once();
         statementSequence();
-        assertCurrent(SymbolType.CURLY_BRACE_CLOSE);
+        symbol().is(CURLY_BRACE_CLOSE).once();
     }
 
     private void returnStatement() {
-        assertCurrent(SymbolType.RETURN);
-
-        if (first("simple_expression").contains(symbol.getType())) {
-            simpleExpression();
-        }
-
-        assertCurrent(SymbolType.SEMICOLON);
+        symbol().is(RETURN).once();
+        symbol().is(first("simple_expression")).optional(this::simpleExpression);
+        symbol().is(SEMICOLON).once();
     }
 
     private void actualParameters() {
-        assertCurrent(SymbolType.PARENTHESES_OPEN);
-
-        if (first("expression").contains(symbol.getType())) {
+        symbol().is(PARENTHESIS_OPEN).once();
+        symbol().is(first("expression")).optional(() -> {
             expression();
-
-            while (SymbolType.COMMA == symbol.getType()) {
-                assertCurrent(SymbolType.COMMA);
+            symbol().is(COMMA).repeat(() -> {
+                symbol().is(COMMA).once();
                 expression();
-            }
-        }
+            });
+        });
 
-        assertCurrent(SymbolType.PARENTHESIS_CLOSE);
+        symbol().is(PARENTHESIS_CLOSE).once();
     }
 
     private void expression() {
         simpleExpression();
-
-        if (SymbolType.EQUALS_EQUALS == symbol.getType()) {
-            assertCurrent(SymbolType.EQUALS_EQUALS);
+        symbol().is(EQUALS_EQUALS, GREATER_THAN, GREATER_THAN_EQUALS, LESS_THAN, LESS_THAN_EQUALS).optional(() -> {
             simpleExpression();
-        } else if (SymbolType.GREATER_THAN == symbol.getType()) {
-            assertCurrent(SymbolType.GREATER_THAN);
-            simpleExpression();
-        } else if (SymbolType.GREATER_THAN_EQUALS == symbol.getType()) {
-            assertCurrent(SymbolType.GREATER_THAN_EQUALS);
-            simpleExpression();
-        } else if (SymbolType.LESS_THAN == symbol.getType()) {
-            assertCurrent(SymbolType.LESS_THAN);
-            simpleExpression();
-        } else if (SymbolType.LESS_THAN_EQUALS == symbol.getType()) {
-            assertCurrent(SymbolType.LESS_THAN_EQUALS);
-            simpleExpression();
-        }
+        });
     }
 
     private void simpleExpression() {
         term();
-
-        while (SymbolType.PLUS == symbol.getType() || SymbolType.MINUS == symbol.getType()) {
+        symbol().is(PLUS, MINUS).repeat(() -> {
             next();
             term();
-        }
+        });
     }
 
     private void term() {
         factor();
-
-        while (SymbolType.TIMES == symbol.getType() || SymbolType.SLASH == symbol.getType()) {
+        symbol().is(TIMES, SLASH).repeat(() -> {
             next();
             factor();
-        }
+        });
     }
 
     private void factor() {
-        if (SymbolType.IDENT == symbol.getType()) {
-            assertCurrent(SymbolType.IDENT);
+        System.out.println(symbol.toString());
+
+        if (IDENT == symbol.getType()) {
+            next();
 
             // Could be an internal procedure call.
-            if (SymbolType.PARENTHESES_OPEN == symbol.getType()) {
-                actualParameters();
-            }
-        } else if (SymbolType.NUMBER == symbol.getType()) {
-            assertCurrent(SymbolType.NUMBER);
-        } else if (SymbolType.PARENTHESES_OPEN == symbol.getType()) {
-            assertCurrent(SymbolType.PARENTHESES_OPEN);
+            symbol().is(PARENTHESIS_OPEN).optional(this::actualParameters);
+        } else if (NUMBER == symbol.getType()) {
+            next();
+        } else if (PARENTHESIS_OPEN == symbol.getType()) {
+            next();
             expression();
-            assertCurrent(SymbolType.PARENTHESIS_CLOSE);
+            symbol().is(PARENTHESIS_CLOSE).once();
         } else if (first("intern_procedure_call").contains(symbol.getType())) {
             internProcedureCall();
         } else {
-            error(SymbolType.IDENT, SymbolType.NUMBER, SymbolType.PARENTHESES_OPEN);
+            error(IDENT, NUMBER, PARENTHESIS_OPEN);
         }
     }
 
@@ -293,26 +300,24 @@ public class JavaSstParser implements Parser {
     public void parse() {
         next();
         clazz();
-        assertCurrent(SymbolType.EOF);
-    }
-
-    /**
-     * Set current to the next {@link Symbol}.
-     */
-    private void next() {
-        this.symbol = scanner.next();
+        symbol().is(EOF).once();
     }
 
     private void error(SymbolType... expected) {
+        error(Arrays.asList(expected));
+    }
+
+    @Override
+    protected void error(final List<SymbolType> expected) {
         String string = "Unexpected symbol '" + symbol.getIdentifier() + "'" +
                 " of type '" + symbol.getType() + "'" +
                 " at '" + symbol.getPosition() + "'.";
 
-        if (expected.length == 0) {
-            string += " Expected symbol of one of the following types: " + Arrays.toString(expected) + ".";
+        if (expected.size() > 0) {
+            string += " Expected symbol of one of the following types: " + expected.toString() + ".";
         }
 
-        Logger.getLogger(JavaSstParser.class.getName()).log(Level.SEVERE, string);
+        Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, string);
         throw new RuntimeException();
     }
 
@@ -327,13 +332,13 @@ public class JavaSstParser implements Parser {
 
         switch (c) {
             case "type":
-                result.add(SymbolType.INT);
+                result.add(INT);
                 break;
             case "method_declaration":
                 result.addAll(first("method_head"));
                 break;
             case "method_head":
-                result.add(SymbolType.PUBLIC);
+                result.add(PUBLIC);
                 break;
             case "fp_section":
                 result.addAll(first("type"));
@@ -349,22 +354,22 @@ public class JavaSstParser implements Parser {
                 result.addAll(first("return_statement"));
                 break;
             case "assignment":
-                result.add(SymbolType.IDENT);
+                result.add(IDENT);
                 break;
             case "procedure_call":
                 result.addAll(first("intern_procedure_call"));
                 break;
             case "if_statement":
-                result.add(SymbolType.IF);
+                result.add(IF);
                 break;
             case "while_statement":
-                result.add(SymbolType.WHILE);
+                result.add(WHILE);
                 break;
             case "return_statement":
-                result.add(SymbolType.RETURN);
+                result.add(RETURN);
                 break;
             case "intern_procedure_call":
-                result.add(SymbolType.IDENT);
+                result.add(IDENT);
                 break;
             case "simple_expression":
                 result.addAll(first("term"));
@@ -373,9 +378,9 @@ public class JavaSstParser implements Parser {
                 result.addAll(first("factor"));
                 break;
             case "factor":
-                result.add(SymbolType.IDENT);
-                result.add(SymbolType.NUMBER);
-                result.add(SymbolType.PARENTHESES_OPEN);
+                result.add(IDENT);
+                result.add(NUMBER);
+                result.add(PARENTHESIS_OPEN);
                 result.addAll(first("intern_procedure_call"));
                 break;
             case "expression":
@@ -386,19 +391,5 @@ public class JavaSstParser implements Parser {
         }
 
         return result;
-    }
-
-    /**
-     * Assert, that the current {@link Symbol} has a given {@link SymbolType}. If true, the {@link #next()} method is
-     * called. Otherwise the {@link #error(SymbolType...)} method is called.
-     *
-     * @param expected The expected {@link SymbolType}.
-     */
-    private void assertCurrent(SymbolType expected) {
-        if (expected == symbol.getType()) {
-            next();
-        } else {
-            error(expected);
-        }
     }
 }
