@@ -78,7 +78,19 @@ public class SymbolTable {
      * @param object The {@link ParserObject}.
      */
     public void insert(ParserObject object) {
+        object.setNext(null);
         parserObjects.add(object);
+
+        if (head == null) {
+            head = object;
+        } else {
+            ParserObject pointer = head;
+            while (pointer.getNext() != null) {
+                pointer = pointer.getNext();
+            }
+
+            pointer.setNext(object);
+        }
     }
 
     /**

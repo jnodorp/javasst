@@ -42,8 +42,6 @@ public class JavaSstParser extends Parser {
      * Class: {@code class} {@code identifier} {@link #classBody()}.
      */
     private void clazz() {
-        LOGGER.info("clazz");
-
         symbol().is(CLASS).once();
         final String className = symbol.getIdentifier();
         symbol().is(IDENT).once();
@@ -55,7 +53,6 @@ public class JavaSstParser extends Parser {
         // Create the {@link ParserObject}.
         final ParserObject p = new ParserObjectClass(null, null, null, null, symbolTable);
         p.setName(className);
-        p.setNext(null);
 
         oldSymbolTable.setHead(p);
 
@@ -69,60 +66,65 @@ public class JavaSstParser extends Parser {
      * Class body: &#123; {@link #declarations()} &#125;.
      */
     private void classBody() {
-        LOGGER.info("START: classBody");
-
         symbol().is(CURLY_BRACE_OPEN).once();
         declarations();
         symbol().is(CURLY_BRACE_CLOSE).once();
-
-        LOGGER.info("END: classBody");
     }
 
     private void constant() {
-        LOGGER.info("START: constant");
-
         symbol().is(FINAL).once();
         type();
+
+        // Get the constants name.
+        final String identifier = symbol.getIdentifier();
+
         symbol().is(IDENT).once();
         symbol().is(EQUALS).once();
         expression();
         symbol().is(SEMICOLON).once();
 
-        LOGGER.info("END: constant");
+        ParserObject p = new ParserObjectConstant(0); // FIXME: Evaluate expression.
+        p.setName(identifier);
+        symbolTable.insert(p);
     }
 
     private void variableDeclaration() {
-        LOGGER.info("START: variableDeclaration");
-
         type();
+
+        // Get the variables name.
+        final String identifier = symbol.getIdentifier();
+
         symbol().is(IDENT).once();
         symbol().is(SEMICOLON).once();
 
-        LOGGER.info("END: variableDeclaration");
+        ParserObject p = new ParserObjectVariable();
+        p.setName(identifier);
+        symbolTable.insert(p);
     }
 
     private void declarations() {
-        LOGGER.info("START: declarations");
-
         symbol().is(FINAL).repeat(this::constant);
         symbol().is(first("type")).repeat(this::variableDeclaration);
         symbol().is(first("method_declaration")).repeat(this::methodDeclaration);
-
-        LOGGER.info("END: declarations");
     }
 
     private void methodDeclaration() {
-        LOGGER.info("START: methodDeclaration");
-
-        methodHead();
-        methodBody();
-    }
-
-    private void methodHead() {
         symbol().is(PUBLIC).once();
         methodType();
+
+        // Get the method name.
+        final String identifier = symbol.getIdentifier();
+
         symbol().is(IDENT).once();
         formalParameters();
+        symbol().is(CURLY_BRACE_OPEN).once();
+        symbol().is(first("local_declaration")).repeat(this::localDeclaration);
+        statementSequence();
+        symbol().is(CURLY_BRACE_CLOSE).once();
+
+        ParserObject p = new ParserObjectProcedure(null, null, null);
+        p.setName(identifier);
+        symbolTable.insert(p);
     }
 
     private void methodType() {
@@ -136,14 +138,12 @@ public class JavaSstParser extends Parser {
     }
 
     private void formalParameters() {
-        System.out.println(symbol.toString());
         symbol().is(PARENTHESIS_OPEN).once();
-        System.out.println(symbol.toString());
         symbol().is(first("fp_section")).optional(() -> {
             fpSection();
 
             symbol().is(COMMA).repeat(() -> {
-                // next(); // FIXME
+                next();
                 fpSection();
             });
         });
@@ -154,13 +154,6 @@ public class JavaSstParser extends Parser {
     private void fpSection() {
         type();
         symbol().is(IDENT).once();
-    }
-
-    private void methodBody() {
-        symbol().is(CURLY_BRACE_OPEN).once();
-        symbol().is(first("local_declaration")).repeat(this::localDeclaration);
-        statementSequence();
-        symbol().is(CURLY_BRACE_CLOSE).once();
     }
 
     private void localDeclaration() {
@@ -255,6 +248,7 @@ public class JavaSstParser extends Parser {
     private void expression() {
         simpleExpression();
         symbol().is(EQUALS_EQUALS, GREATER_THAN, GREATER_THAN_EQUALS, LESS_THAN, LESS_THAN_EQUALS).optional(() -> {
+            next();
             simpleExpression();
         });
     }
@@ -276,8 +270,6 @@ public class JavaSstParser extends Parser {
     }
 
     private void factor() {
-        System.out.println(symbol.toString());
-
         if (IDENT == symbol.getType()) {
             next();
 
@@ -317,7 +309,7 @@ public class JavaSstParser extends Parser {
             string += " Expected symbol of one of the following types: " + expected.toString() + ".";
         }
 
-        Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, string);
+        LOGGER.log(Level.SEVERE, string);
         throw new RuntimeException();
     }
 
