@@ -26,7 +26,7 @@ public class ParserObjectClass extends ParserObject {
     private final ParserObject interfaces;
 
     /**
-     * The symbol table.
+     * The token table.
      */
     private final SymbolTable symbolTable;
 
@@ -37,7 +37,7 @@ public class ParserObjectClass extends ParserObject {
      * @param methodDeclarations  The method declarations.
      * @param superclasses        The superclasses.
      * @param interfaces          The interfaces.
-     * @param symbolTable         The symbol table.
+     * @param symbolTable         The token table.
      */
     public ParserObjectClass(final ParserObject variableDefinitions, final ParserObject methodDeclarations, final
     ParserObject superclasses, final ParserObject interfaces, final SymbolTable symbolTable) {
@@ -90,9 +90,9 @@ public class ParserObjectClass extends ParserObject {
     }
 
     /**
-     * Get the symbol table.
+     * Get the token table.
      *
-     * @return The symbol table.
+     * @return The token table.
      */
     public SymbolTable getSymbolTable() {
         return symbolTable;

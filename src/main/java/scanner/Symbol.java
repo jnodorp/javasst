@@ -1,9 +1,11 @@
 package scanner;
 
+import parser.Token;
+
 /**
  * This class contains constants for all terminal symbols.
  */
-public class Symbol {
+public class Symbol implements Token<SymbolType> {
 
     /**
      * The identifier.

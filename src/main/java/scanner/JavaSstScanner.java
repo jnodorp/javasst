@@ -43,7 +43,7 @@ public class JavaSstScanner implements Iterator<Symbol> {
     private boolean comment = false;
 
     /**
-     * The read characters since the last symbol.
+     * The read characters since the last token.
      */
     private String stack;
 
@@ -197,7 +197,7 @@ public class JavaSstScanner implements Iterator<Symbol> {
             throw new InputMismatchException("Invalid input '" + stack + "' at " + input.getPosition());
         }
 
-        LOGGER.log(Level.INFO, "Found symbol '" + symbol + "' with stack '" + stack + "'.");
+        LOGGER.log(Level.INFO, "Found token '" + symbol + "' with stack '" + stack + "'.");
 
         final Position position = new Position(input.getPosition().getFile(), input.getPosition().getLine(), input
                 .getPosition().getColumn() - (stack.length() - positionBias));

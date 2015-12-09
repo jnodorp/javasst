@@ -15,7 +15,7 @@ import static scanner.SymbolType.*;
 /**
  * A parser for Java SST.
  */
-public class JavaSstParser extends Parser {
+public class JavaSstParser extends Parser<Symbol, SymbolType> {
 
     /**
      * The logger.
@@ -44,10 +44,10 @@ public class JavaSstParser extends Parser {
     private void clazz() {
         String identifier;
 
-        symbol().is(CLASS).once();
+        token().is(CLASS).once();
 
-        identifier = symbol.getIdentifier();
-        symbol().is(IDENT).once();
+        identifier = token.getIdentifier();
+        token().is(IDENT).once();
 
         // Create the {@link SymbolTable} for the class.
         final SymbolTable oldSymbolTable = symbolTable;
@@ -69,22 +69,22 @@ public class JavaSstParser extends Parser {
      * Class body: &#123; {@link #declarations()} &#125;.
      */
     private void classBody() {
-        symbol().is(CURLY_BRACE_OPEN).once();
+        token().is(CURLY_BRACE_OPEN).once();
         declarations();
-        symbol().is(CURLY_BRACE_CLOSE).once();
+        token().is(CURLY_BRACE_CLOSE).once();
     }
 
     private void constant() {
-        symbol().is(FINAL).once();
+        token().is(FINAL).once();
         type();
 
         // Get the constants name.
-        final String identifier = symbol.getIdentifier();
+        final String identifier = token.getIdentifier();
 
-        symbol().is(IDENT).once();
-        symbol().is(EQUALS).once();
+        token().is(IDENT).once();
+        token().is(EQUALS).once();
         expression();
-        symbol().is(SEMICOLON).once();
+        token().is(SEMICOLON).once();
 
         ParserObject p = new ParserObjectConstant(0); // FIXME: Evaluate expression.
         p.setName(identifier);
@@ -95,10 +95,10 @@ public class JavaSstParser extends Parser {
         type();
 
         // Get the variables name.
-        final String identifier = symbol.getIdentifier();
+        final String identifier = token.getIdentifier();
 
-        symbol().is(IDENT).once();
-        symbol().is(SEMICOLON).once();
+        token().is(IDENT).once();
+        token().is(SEMICOLON).once();
 
         ParserObject p = new ParserObjectVariable();
         p.setName(identifier);
@@ -106,24 +106,24 @@ public class JavaSstParser extends Parser {
     }
 
     private void declarations() {
-        symbol().is(FINAL).repeat(this::constant);
-        symbol().is(first("type")).repeat(this::variableDeclaration);
-        symbol().is(first("method_declaration")).repeat(this::methodDeclaration);
+        token().is(FINAL).repeat(this::constant);
+        token().is(first("type")).repeat(this::variableDeclaration);
+        token().is(first("method_declaration")).repeat(this::methodDeclaration);
     }
 
     private void methodDeclaration() {
-        symbol().is(PUBLIC).once();
+        token().is(PUBLIC).once();
         methodType();
 
         // Get the method name.
-        final String identifier = symbol.getIdentifier();
+        final String identifier = token.getIdentifier();
 
-        symbol().is(IDENT).once();
+        token().is(IDENT).once();
         formalParameters();
-        symbol().is(CURLY_BRACE_OPEN).once();
-        symbol().is(first("local_declaration")).repeat(this::localDeclaration);
+        token().is(CURLY_BRACE_OPEN).once();
+        token().is(first("local_declaration")).repeat(this::localDeclaration);
         statementSequence();
-        symbol().is(CURLY_BRACE_CLOSE).once();
+        token().is(CURLY_BRACE_CLOSE).once();
 
         ParserObject p = new ParserObjectProcedure(null, null, null);
         p.setName(identifier);
@@ -131,59 +131,59 @@ public class JavaSstParser extends Parser {
     }
 
     private void methodType() {
-        symbol().is(VOID, INT).once();
+        token().is(VOID, INT).once();
     }
 
     private void formalParameters() {
-        symbol().is(PARENTHESIS_OPEN).once();
-        symbol().is(first("fp_section")).optional(() -> {
+        token().is(PARENTHESIS_OPEN).once();
+        token().is(first("fp_section")).optional(() -> {
             fpSection();
 
-            symbol().is(COMMA).repeat(() -> {
+            token().is(COMMA).repeat(() -> {
                 next();
                 fpSection();
             });
         });
 
-        symbol().is(PARENTHESIS_CLOSE).once();
+        token().is(PARENTHESIS_CLOSE).once();
     }
 
     private void fpSection() {
         type();
-        symbol().is(IDENT).once();
+        token().is(IDENT).once();
     }
 
     private void localDeclaration() {
         type();
-        symbol().is(IDENT).once();
-        symbol().is(SEMICOLON).once();
+        token().is(IDENT).once();
+        token().is(SEMICOLON).once();
     }
 
     private void statementSequence() {
         statement();
-        symbol().is(first("statement")).repeat(this::statement);
+        token().is(first("statement")).repeat(this::statement);
     }
 
     private void statement() {
         // Could be an assignment or a procedure call.
-        if (IDENT == symbol.getType()) {
+        if (IDENT == token.getType()) {
             next();
 
-            if (PARENTHESIS_OPEN == symbol.getType()) {
+            if (PARENTHESIS_OPEN == token.getType()) {
                 actualParameters();
-                symbol().is(SEMICOLON).once();
-            } else if (EQUALS == symbol.getType()) {
-                symbol().is(EQUALS).once();
+                token().is(SEMICOLON).once();
+            } else if (EQUALS == token.getType()) {
+                token().is(EQUALS).once();
                 expression();
-                symbol().is(SEMICOLON).once();
+                token().is(SEMICOLON).once();
             } else {
                 error(PARENTHESIS_OPEN, EQUALS);
             }
-        } else if (first("if_statement").contains(symbol.getType())) {
+        } else if (first("if_statement").contains(token.getType())) {
             ifStatement();
-        } else if (first("while_statement").contains(symbol.getType())) {
+        } else if (first("while_statement").contains(token.getType())) {
             whileStatement();
-        } else if (first("return_statement").contains(symbol.getType())) {
+        } else if (first("return_statement").contains(token.getType())) {
             returnStatement();
         } else {
             error(IDENT, IF, WHILE, RETURN);
@@ -191,60 +191,60 @@ public class JavaSstParser extends Parser {
     }
 
     private void type() {
-        symbol().is(INT).once();
+        token().is(INT).once();
     }
 
     private void internProcedureCall() {
-        symbol().is(IDENT).once();
+        token().is(IDENT).once();
         actualParameters();
     }
 
     private void ifStatement() {
-        symbol().is(IF).once();
-        symbol().is(PARENTHESIS_OPEN).once();
+        token().is(IF).once();
+        token().is(PARENTHESIS_OPEN).once();
         expression();
-        symbol().is(PARENTHESIS_CLOSE).once();
-        symbol().is(CURLY_BRACE_OPEN).once();
+        token().is(PARENTHESIS_CLOSE).once();
+        token().is(CURLY_BRACE_OPEN).once();
         statementSequence();
-        symbol().is(CURLY_BRACE_CLOSE).once();
-        symbol().is(ELSE).once();
-        symbol().is(CURLY_BRACE_OPEN).once();
+        token().is(CURLY_BRACE_CLOSE).once();
+        token().is(ELSE).once();
+        token().is(CURLY_BRACE_OPEN).once();
         statementSequence();
-        symbol().is(CURLY_BRACE_CLOSE).once();
+        token().is(CURLY_BRACE_CLOSE).once();
     }
 
     private void whileStatement() {
-        symbol().is(WHILE).once();
-        symbol().is(PARENTHESIS_OPEN).once();
+        token().is(WHILE).once();
+        token().is(PARENTHESIS_OPEN).once();
         expression();
-        symbol().is(PARENTHESIS_CLOSE).once();
-        symbol().is(CURLY_BRACE_OPEN).once();
+        token().is(PARENTHESIS_CLOSE).once();
+        token().is(CURLY_BRACE_OPEN).once();
         statementSequence();
-        symbol().is(CURLY_BRACE_CLOSE).once();
+        token().is(CURLY_BRACE_CLOSE).once();
     }
 
     private void returnStatement() {
-        symbol().is(RETURN).once();
-        symbol().is(first("simple_expression")).optional(this::simpleExpression);
-        symbol().is(SEMICOLON).once();
+        token().is(RETURN).once();
+        token().is(first("simple_expression")).optional(this::simpleExpression);
+        token().is(SEMICOLON).once();
     }
 
     private void actualParameters() {
-        symbol().is(PARENTHESIS_OPEN).once();
-        symbol().is(first("expression")).optional(() -> {
+        token().is(PARENTHESIS_OPEN).once();
+        token().is(first("expression")).optional(() -> {
             expression();
-            symbol().is(COMMA).repeat(() -> {
-                symbol().is(COMMA).once();
+            token().is(COMMA).repeat(() -> {
+                token().is(COMMA).once();
                 expression();
             });
         });
 
-        symbol().is(PARENTHESIS_CLOSE).once();
+        token().is(PARENTHESIS_CLOSE).once();
     }
 
     private void expression() {
         simpleExpression();
-        symbol().is(EQUALS_EQUALS, GREATER_THAN, GREATER_THAN_EQUALS, LESS_THAN, LESS_THAN_EQUALS).optional(() -> {
+        token().is(EQUALS_EQUALS, GREATER_THAN, GREATER_THAN_EQUALS, LESS_THAN, LESS_THAN_EQUALS).optional(() -> {
             next();
             simpleExpression();
         });
@@ -252,7 +252,7 @@ public class JavaSstParser extends Parser {
 
     private void simpleExpression() {
         term();
-        symbol().is(PLUS, MINUS).repeat(() -> {
+        token().is(PLUS, MINUS).repeat(() -> {
             next();
             term();
         });
@@ -260,25 +260,25 @@ public class JavaSstParser extends Parser {
 
     private void term() {
         factor();
-        symbol().is(TIMES, SLASH).repeat(() -> {
+        token().is(TIMES, SLASH).repeat(() -> {
             next();
             factor();
         });
     }
 
     private void factor() {
-        if (IDENT == symbol.getType()) {
+        if (IDENT == token.getType()) {
             next();
 
             // Could be an internal procedure call.
-            symbol().is(PARENTHESIS_OPEN).optional(this::actualParameters);
-        } else if (NUMBER == symbol.getType()) {
+            token().is(PARENTHESIS_OPEN).optional(this::actualParameters);
+        } else if (NUMBER == token.getType()) {
             next();
-        } else if (PARENTHESIS_OPEN == symbol.getType()) {
+        } else if (PARENTHESIS_OPEN == token.getType()) {
             next();
             expression();
-            symbol().is(PARENTHESIS_CLOSE).once();
-        } else if (first("intern_procedure_call").contains(symbol.getType())) {
+            token().is(PARENTHESIS_CLOSE).once();
+        } else if (first("intern_procedure_call").contains(token.getType())) {
             internProcedureCall();
         } else {
             error(IDENT, NUMBER, PARENTHESIS_OPEN);
@@ -289,7 +289,7 @@ public class JavaSstParser extends Parser {
     public void parse() {
         next();
         clazz();
-        symbol().is(EOF).once();
+        token().is(EOF).once();
     }
 
     /**
@@ -301,12 +301,12 @@ public class JavaSstParser extends Parser {
 
     @Override
     protected void error(final List<SymbolType> expected) {
-        String string = "Unexpected symbol '" + symbol.getIdentifier() + "'" +
-                " of type '" + symbol.getType() + "'" +
-                " at '" + symbol.getPosition() + "'.";
+        String string = "Unexpected token '" + token.getIdentifier() + "'" +
+                " of type '" + token.getType() + "'" +
+                " at '" + token.getPosition() + "'.";
 
         if (expected.size() > 0) {
-            string += " Expected symbol of one of the following types: " + expected.toString() + ".";
+            string += " Expected token of one of the following types: " + expected.toString() + ".";
         }
 
         LOGGER.log(Level.SEVERE, string);
@@ -317,7 +317,7 @@ public class JavaSstParser extends Parser {
      * Get all possible first {@link SymbolType} of the construct c.
      *
      * @param c The construct.
-     * @return The possible first symbol types of c.
+     * @return The possible first token types of c.
      */
     private List<SymbolType> first(String c) {
         final ArrayList<SymbolType> result = new ArrayList<>();

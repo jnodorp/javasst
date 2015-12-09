@@ -5,7 +5,7 @@ import java.util.List;
 import java.util.Optional;
 
 /**
- * A symbol table.
+ * A token table.
  */
 public class SymbolTable {
 
@@ -15,7 +15,7 @@ public class SymbolTable {
     private final List<ParserObject> parserObjects;
 
     /**
-     * The enclosing symbol table.
+     * The enclosing token table.
      */
     private SymbolTable enclose;
 
@@ -25,10 +25,10 @@ public class SymbolTable {
     private ParserObject head;
 
     /**
-     * Create a new symbol table.
+     * Create a new token table.
      *
      * @param head    The head.
-     * @param enclose The enclosing symbol table.
+     * @param enclose The enclosing token table.
      */
     public SymbolTable(final ParserObject head, final SymbolTable enclose) {
         this.head = head;
@@ -55,18 +55,18 @@ public class SymbolTable {
     }
 
     /**
-     * Get the enclosing symbol table.
+     * Get the enclosing token table.
      *
-     * @return The enclosing symbol table.
+     * @return The enclosing token table.
      */
     public SymbolTable getEnclose() {
         return enclose;
     }
 
     /**
-     * Set the enclosing symbol table.
+     * Set the enclosing token table.
      *
-     * @param enclose The enclosing symbol table.
+     * @param enclose The enclosing token table.
      */
     public void setEnclose(final SymbolTable enclose) {
         this.enclose = enclose;

@@ -1,8 +1,5 @@
 package parser;
 
-import scanner.Symbol;
-import scanner.SymbolType;
-
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -11,46 +8,48 @@ import java.util.logging.Logger;
 
 /**
  * A parser converts a scanner to a tree structure.
+ *
+ * @param <T> The {@link Token} object.
+ * @param <E> The {@link Token}s type.
  */
-public abstract class Parser {
+public abstract class Parser<T extends Token<E>, E extends Enum> {
 
     /**
      * The scanner.
      */
-    protected Iterator<Symbol> scanner;
+    protected Iterator<T> scanner;
 
     /**
-     * The current symbol.
+     * The current token.
      */
-    protected Symbol symbol;
+    protected T token;
 
     /**
-     * The current symbols index.
+     * The symbol table.
      */
-    protected int index = 0;
+    protected SymbolTable symbolTable;
 
     /**
      * Create a new parser.
      *
      * @param scanner The scanner.
      */
-    public Parser(final Iterator<Symbol> scanner) {
+    public Parser(final Iterator<T> scanner) {
         this.scanner = scanner;
     }
 
     /**
-     * Set current to the next {@link Symbol}.
+     * Set current to the next {@link Token}.
      */
     protected void next() {
-        this.symbol = scanner.next();
-        this.index++;
-        Logger.getLogger(this.getClass().getName()).info(this.symbol.toString());
+        this.token = scanner.next();
+        Logger.getLogger(this.getClass().getName()).info(this.token.toString());
     }
 
     /**
      * Switch to the error state.
      */
-    abstract void error(final List<SymbolType> expected);
+    abstract void error(final List<E> expected);
 
     /**
      * Start the parsing process (by calling the start node method).
@@ -58,23 +57,23 @@ public abstract class Parser {
     public abstract void parse();
 
     /**
-     * Allow verifications on the current symbol.
+     * Allow verifications on the current token.
      *
      * @return A {@link Specification} object.
      */
-    Specification symbol() {
+    Specification token() {
         return new Specification();
     }
 
     /**
-     * A pecification verifies, that the current {@link Symbol} is valid.
+     * A pecification verifies, that the current {@link Token} is valid.
      */
     protected class Specification {
 
         /**
-         * The expected symbols.
+         * The expected tokens.
          */
-        private final List<SymbolType> expected;
+        private final List<E> expected;
 
         /**
          * Create a new specification.
@@ -84,51 +83,52 @@ public abstract class Parser {
         }
 
         /**
-         * Add expected symbols to the specification.
+         * Add expected tokens to the specification.
          *
-         * @param expected The expected symbols.
-         * @return A counter object t specify the number of times the symbols have to occur.
+         * @param expected The expected tokens.
+         * @return A counter object t specify the number of times the tokens have to occur.
          */
-        public final Counter is(final SymbolType... expected) {
+        @SafeVarargs
+        public final Counter is(final E... expected) {
             this.expected.addAll(Arrays.asList(expected));
             return new Counter(this.expected);
         }
 
         /**
-         * Add expected symbols to the specification.
+         * Add expected {@link Token}s to the specification.
          *
-         * @param expected The expected symbols.
-         * @return A counter object t specify the number of times the symbols have to occur.
+         * @param expected The expected {@link Token}s.
+         * @return A counter object t specify the number of times the {@link Token}s have to occur.
          */
-        public Counter is(final List<SymbolType> expected) {
+        public Counter is(final List<E> expected) {
             return new Counter(expected);
         }
     }
 
     /**
-     * As part of the specification the counter verifies the number of {@link Symbol}s to match.
+     * As part of the specification the counter verifies the number of {@link Token}s to match.
      */
     protected class Counter {
 
         /**
-         * The expected symbols.
+         * The expected tokens.
          */
-        private final List<SymbolType> expected;
+        private final List<E> expected;
 
         /**
-         * Create a new counter expecting the given symbols.
+         * Create a new counter expecting the given {@link Token}s.
          *
-         * @param expected The expected symbols.
+         * @param expected The expected {@link Token}s.
          */
-        private Counter(final List<SymbolType> expected) {
+        private Counter(final List<E> expected) {
             this.expected = expected;
         }
 
         /**
-         * Make sure the symbol is available exactly once. Throw an error otherwise.
+         * Make sure the token is available exactly once. Throw an error otherwise.
          */
         public void once() {
-            if (expected.contains(symbol.getType())) {
+            if (expected.contains(token.getType())) {
                 next();
             } else {
                 error(expected);
@@ -136,23 +136,23 @@ public abstract class Parser {
         }
 
         /**
-         * If the {@link Specification} matches the current {@link Symbol} execute the function.
+         * If the {@link Specification} matches the current {@link Token} execute the function.
          *
          * @param function The function.
          */
         public void optional(final Runnable function) {
-            if (expected.contains(symbol.getType())) {
+            if (expected.contains(token.getType())) {
                 function.run();
             }
         }
 
         /**
-         * Repeat the function while the {@link Specification} matches the current {@link Symbol}.
+         * Repeat the function while the {@link Specification} matches the current {@link Token}.
          *
          * @param function The function.
          */
         public void repeat(final Runnable function) {
-            while (expected.contains(symbol.getType())) {
+            while (expected.contains(token.getType())) {
                 function.run();
             }
         }
