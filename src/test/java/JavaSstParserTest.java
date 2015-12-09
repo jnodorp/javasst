@@ -1,8 +1,6 @@
-package parser;
-
 import org.junit.Test;
+import parser.Parser;
 import scanner.Input;
-import scanner.JavaSstScanner;
 import scanner.TokenImpl;
 
 import java.io.FileNotFoundException;

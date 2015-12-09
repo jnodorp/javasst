@@ -49,9 +49,21 @@ public abstract class Parser<T extends Token<E>, E extends Enum> {
     }
 
     /**
+     * Run the given code with its own {@link SymbolTable}.
+     *
+     * @param runnable The code to run.
+     */
+    protected void scope(Runnable runnable) {
+        final SymbolTable oldSymbolTable = symbolTable;
+        symbolTable = new SymbolTable(null, oldSymbolTable);
+        runnable.run();
+        symbolTable = oldSymbolTable;
+    }
+
+    /**
      * Switch to the error state.
      */
-    abstract void error(final List<E> expected);
+    protected abstract void error(final List<E> expected);
 
     /**
      * Start the parsing process (by calling the start node method).
@@ -63,7 +75,7 @@ public abstract class Parser<T extends Token<E>, E extends Enum> {
      *
      * @return A {@link Specification} object.
      */
-    Specification token() {
+    protected Specification token() {
         return new Specification();
     }
 

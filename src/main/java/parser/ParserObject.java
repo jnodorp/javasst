@@ -3,7 +3,7 @@ package parser;
 /**
  * {@link ParserObject}s (e.g. variables, constant, etc.).
  */
-abstract class ParserObject {
+public abstract class ParserObject {
 
     /**
      * The name.

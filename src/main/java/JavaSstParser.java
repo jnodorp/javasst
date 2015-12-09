@@ -1,5 +1,4 @@
-package parser;
-
+import parser.*;
 import scanner.TokenImpl;
 import scanner.TokenType;
 
@@ -23,11 +22,6 @@ public class JavaSstParser extends Parser<TokenImpl, TokenType> {
     private static final Logger LOGGER = Logger.getLogger(JavaSstParser.class.getName());
 
     /**
-     * The {@link SymbolTable}.
-     */
-    private SymbolTable symbolTable;
-
-    /**
      * Create a new {@link Parser} based on the given scanner.
      *
      * @param scanner The scanner.
@@ -42,27 +36,19 @@ public class JavaSstParser extends Parser<TokenImpl, TokenType> {
      * Class: {@code class} {@code identifier} {@link #classBody()}.
      */
     private void clazz() {
-        String identifier;
+        scope(() -> {
+            token().is(CLASS).once();
+            final String identifier = token.getIdentifier();
+            token().is(IDENT).once();
 
-        token().is(CLASS).once();
+            // Create the {@link ParserObject}.
+            final ParserObject p = new ParserObjectClass(null, null, null, null, symbolTable);
+            p.setName(identifier);
 
-        identifier = token.getIdentifier();
-        token().is(IDENT).once();
+            symbolTable.setHead(p);
 
-        // Create the {@link SymbolTable} for the class.
-        final SymbolTable oldSymbolTable = symbolTable;
-        symbolTable = new SymbolTable(null, oldSymbolTable);
-
-        // Create the {@link ParserObject}.
-        final ParserObject p = new ParserObjectClass(null, null, null, null, symbolTable);
-        p.setName(identifier);
-
-        oldSymbolTable.setHead(p);
-
-        classBody();
-
-        // Reset {@link SymbolTable} when leaving scope.
-        symbolTable = oldSymbolTable;
+            classBody();
+        });
     }
 
     /**
@@ -200,27 +186,31 @@ public class JavaSstParser extends Parser<TokenImpl, TokenType> {
     }
 
     private void ifStatement() {
-        token().is(IF).once();
-        token().is(PARENTHESIS_OPEN).once();
-        expression();
-        token().is(PARENTHESIS_CLOSE).once();
-        token().is(CURLY_BRACE_OPEN).once();
-        statementSequence();
-        token().is(CURLY_BRACE_CLOSE).once();
-        token().is(ELSE).once();
-        token().is(CURLY_BRACE_OPEN).once();
-        statementSequence();
-        token().is(CURLY_BRACE_CLOSE).once();
+        scope(() -> {
+            token().is(IF).once();
+            token().is(PARENTHESIS_OPEN).once();
+            expression();
+            token().is(PARENTHESIS_CLOSE).once();
+            token().is(CURLY_BRACE_OPEN).once();
+            statementSequence();
+            token().is(CURLY_BRACE_CLOSE).once();
+            token().is(ELSE).once();
+            token().is(CURLY_BRACE_OPEN).once();
+            statementSequence();
+            token().is(CURLY_BRACE_CLOSE).once();
+        });
     }
 
     private void whileStatement() {
-        token().is(WHILE).once();
-        token().is(PARENTHESIS_OPEN).once();
-        expression();
-        token().is(PARENTHESIS_CLOSE).once();
-        token().is(CURLY_BRACE_OPEN).once();
-        statementSequence();
-        token().is(CURLY_BRACE_CLOSE).once();
+        scope(() -> {
+            token().is(WHILE).once();
+            token().is(PARENTHESIS_OPEN).once();
+            expression();
+            token().is(PARENTHESIS_CLOSE).once();
+            token().is(CURLY_BRACE_OPEN).once();
+            statementSequence();
+            token().is(CURLY_BRACE_CLOSE).once();
+        });
     }
 
     private void returnStatement() {

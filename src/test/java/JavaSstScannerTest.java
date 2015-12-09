@@ -1,7 +1,9 @@
-package scanner;
-
+import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
+import scanner.Input;
+import scanner.TokenImpl;
+import scanner.TokenType;
 
 import java.io.File;
 import java.util.Iterator;
@@ -36,7 +38,7 @@ public class JavaSstScannerTest {
 
         // class class NiceClassName6 {
         symbol = scanner.next();
-        assertEquals(TokenType.CLASS, symbol.getType());
+        Assert.assertEquals(TokenType.CLASS, symbol.getType());
         assertEquals("class", symbol.getIdentifier());
         assertEquals(FILE, symbol.getFile().toString());
         assertEquals(4, symbol.getLine());

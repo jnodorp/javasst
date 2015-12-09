@@ -1,4 +1,6 @@
-package scanner;
+import scanner.Input;
+import scanner.TokenImpl;
+import scanner.TokenType;
 
 import java.util.Arrays;
 import java.util.InputMismatchException;
