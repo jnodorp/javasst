@@ -1,7 +1,6 @@
 package scanner;
 
 import org.junit.Test;
-import scanner.Input;
 
 import java.util.Arrays;
 
@@ -25,15 +24,15 @@ public class InputTest {
     public void testGetPosition() throws Exception {
         Input input = new Input("src/test/resources/input_test.txt");
 
-        assertEquals("input_test.txt", input.getPosition().getFile().getName());
-        assertEquals(1, input.getPosition().getLine());
-        assertEquals(1, input.getPosition().getColumn());
+        assertEquals("input_test.txt", input.getFile().getName());
+        assertEquals(1, input.getLine());
+        assertEquals(1, input.getColumn());
 
         assertEquals("A", "" + input.next());
 
-        assertEquals("input_test.txt", input.getPosition().getFile().getName());
-        assertEquals(1, input.getPosition().getLine());
-        assertEquals(2, input.getPosition().getColumn());
+        assertEquals("input_test.txt", input.getFile().getName());
+        assertEquals(1, input.getLine());
+        assertEquals(2, input.getColumn());
     }
 
     @Test

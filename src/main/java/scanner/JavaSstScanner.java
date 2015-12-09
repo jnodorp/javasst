@@ -10,7 +10,7 @@ import java.util.regex.Pattern;
 /**
  * This class processes input provided by an {@link Input} instance.
  */
-public class JavaSstScanner implements Iterator<Symbol> {
+public class JavaSstScanner implements Iterator<TokenImpl> {
 
     /**
      * The logger.
@@ -62,9 +62,9 @@ public class JavaSstScanner implements Iterator<Symbol> {
     }
 
     @Override
-    public Symbol next() {
+    public TokenImpl next() {
         stack = "";
-        SymbolType symbol = null;
+        TokenType symbol = null;
 
         // Skip whitespaces.
         while (current <= ' ') {
@@ -78,83 +78,83 @@ public class JavaSstScanner implements Iterator<Symbol> {
         LOGGER.log(Level.INFO, "Matching character '" + current + "'.");
         switch (current) {
             case '{':
-                symbol = SymbolType.CURLY_BRACE_OPEN;
+                symbol = TokenType.CURLY_BRACE_OPEN;
                 break;
             case '}':
-                symbol = SymbolType.CURLY_BRACE_CLOSE;
+                symbol = TokenType.CURLY_BRACE_CLOSE;
                 break;
             case ';':
-                symbol = SymbolType.SEMICOLON;
+                symbol = TokenType.SEMICOLON;
                 break;
             case '(':
-                symbol = SymbolType.PARENTHESIS_OPEN;
+                symbol = TokenType.PARENTHESIS_OPEN;
                 break;
             case ')':
-                symbol = SymbolType.PARENTHESIS_CLOSE;
+                symbol = TokenType.PARENTHESIS_CLOSE;
                 break;
             case ',':
-                symbol = SymbolType.COMMA;
+                symbol = TokenType.COMMA;
                 break;
             case '+':
-                symbol = SymbolType.PLUS;
+                symbol = TokenType.PLUS;
                 break;
             case '-':
-                symbol = SymbolType.MINUS;
+                symbol = TokenType.MINUS;
                 break;
             case '*':
-                symbol = lookahead("*/", SymbolType.COMMENT_STOP, SymbolType.TIMES);
+                symbol = lookahead("*/", TokenType.COMMENT_STOP, TokenType.TIMES);
                 break;
             case '/':
-                symbol = lookahead("/*", SymbolType.COMMENT_START, SymbolType.SLASH);
+                symbol = lookahead("/*", TokenType.COMMENT_START, TokenType.SLASH);
                 break;
             case '<':
-                symbol = lookahead("<=", SymbolType.LESS_THAN_EQUALS, SymbolType.LESS_THAN);
+                symbol = lookahead("<=", TokenType.LESS_THAN_EQUALS, TokenType.LESS_THAN);
                 break;
             case '>':
-                symbol = lookahead(">=", SymbolType.GREATER_THAN_EQUALS, SymbolType.GREATER_THAN);
+                symbol = lookahead(">=", TokenType.GREATER_THAN_EQUALS, TokenType.GREATER_THAN);
                 break;
             case '=':
-                symbol = lookahead("==", SymbolType.EQUALS_EQUALS, SymbolType.EQUALS);
+                symbol = lookahead("==", TokenType.EQUALS_EQUALS, TokenType.EQUALS);
                 break;
             case 'c':
-                symbol = lookahead("class", SymbolType.CLASS, null);
+                symbol = lookahead("class", TokenType.CLASS, null);
                 break;
             case 'e':
-                symbol = lookahead("else", SymbolType.ELSE, null);
+                symbol = lookahead("else", TokenType.ELSE, null);
                 break;
             case 'f':
-                symbol = lookahead("final", SymbolType.FINAL, null);
+                symbol = lookahead("final", TokenType.FINAL, null);
                 break;
             case 'i':
-                if (lookahead("if", SymbolType.IF, null) != null) {
-                    symbol = SymbolType.IF;
-                } else if (lookahead("int", SymbolType.INT, null) != null) {
-                    symbol = SymbolType.INT;
+                if (lookahead("if", TokenType.IF, null) != null) {
+                    symbol = TokenType.IF;
+                } else if (lookahead("int", TokenType.INT, null) != null) {
+                    symbol = TokenType.INT;
                 } else {
                     symbol = null;
                 }
                 break;
             case 'p':
-                symbol = lookahead("public", SymbolType.PUBLIC, null);
+                symbol = lookahead("public", TokenType.PUBLIC, null);
                 break;
             case 'r':
-                symbol = lookahead("return", SymbolType.RETURN, null);
+                symbol = lookahead("return", TokenType.RETURN, null);
                 break;
             case 'v':
-                symbol = lookahead("void", SymbolType.VOID, null);
+                symbol = lookahead("void", TokenType.VOID, null);
                 break;
             case 'w':
-                symbol = lookahead("while", SymbolType.WHILE, null);
+                symbol = lookahead("while", TokenType.WHILE, null);
                 break;
             case (char) -1:
-                symbol = SymbolType.EOF;
+                symbol = TokenType.EOF;
                 break;
             default:
                 if (DIGIT.matcher("" + current).matches()) {
                     while (DIGIT.matcher("" + current).matches()) {
                         current = input.next();
                         stack += current;
-                        symbol = SymbolType.NUMBER;
+                        symbol = TokenType.NUMBER;
                     }
                 }
         }
@@ -163,12 +163,12 @@ public class JavaSstScanner implements Iterator<Symbol> {
             while (LETTER.matcher("" + current).matches() || DIGIT.matcher("" + current).matches()) {
                 current = input.next();
                 stack += current;
-                symbol = SymbolType.IDENT;
+                symbol = TokenType.IDENT;
             }
         }
 
         int positionBias = 0;
-        if (symbol == SymbolType.IDENT || symbol == SymbolType.NUMBER) {
+        if (symbol == TokenType.IDENT || symbol == TokenType.NUMBER) {
             stack = stack.substring(0, stack.length() - 1);
             positionBias++;
         } else {
@@ -179,12 +179,12 @@ public class JavaSstScanner implements Iterator<Symbol> {
             positionBias++;
         }
 
-        if (symbol == SymbolType.COMMENT_START) {
+        if (symbol == TokenType.COMMENT_START) {
             comment = true;
             return next();
         }
 
-        if (symbol == SymbolType.COMMENT_STOP) {
+        if (symbol == TokenType.COMMENT_STOP) {
             comment = false;
             return next();
         }
@@ -194,25 +194,25 @@ public class JavaSstScanner implements Iterator<Symbol> {
         }
 
         if (symbol == null) {
-            throw new InputMismatchException("Invalid input '" + stack + "' at " + input.getPosition());
+            throw new InputMismatchException("Invalid input '" + stack + "' at " +
+                    "[" + input.getLine() + ":" + input.getColumn() + "]@" + input.getFile());
         }
 
         LOGGER.log(Level.INFO, "Found token '" + symbol + "' with stack '" + stack + "'.");
 
-        final Position position = new Position(input.getPosition().getFile(), input.getPosition().getLine(), input
-                .getPosition().getColumn() - (stack.length() - positionBias));
-        return new Symbol(stack, symbol, position);
+        return new TokenImpl(stack, symbol, input.getLine(), input.getColumn() - (stack.length() - positionBias),
+                input.getFile());
     }
 
     /**
      * Perform a lookahead.
      *
      * @param match   The characters to look at.
-     * @param success Symbol type to return on match.
-     * @param failure Symbol type to return on mismatch.
+     * @param success TokenImpl type to return on match.
+     * @param failure TokenImpl type to return on mismatch.
      * @return One of the specified symbols.
      */
-    private SymbolType lookahead(final String match, final SymbolType success, final SymbolType failure) {
+    private TokenType lookahead(final String match, final TokenType success, final TokenType failure) {
         String newMatch = match.substring(1);
 
         final StringBuilder lookahead = new StringBuilder();

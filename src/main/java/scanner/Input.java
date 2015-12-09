@@ -91,15 +91,6 @@ public class Input implements Iterator<Character> {
     }
 
     /**
-     * Get the current position.
-     *
-     * @return The current position.
-     */
-    public Position getPosition() {
-        return new Position(file, line, column);
-    }
-
-    /**
      * Get the next {@code n} values. The current value stays the same.
      *
      * @param n The number of values to look ahead.
@@ -125,5 +116,32 @@ public class Input implements Iterator<Character> {
         }
 
         return result;
+    }
+
+    /**
+     * Get the line.
+     *
+     * @return The line.
+     */
+    public int getLine() {
+        return line;
+    }
+
+    /**
+     * Get the column.
+     *
+     * @return The column.
+     */
+    public int getColumn() {
+        return column;
+    }
+
+    /**
+     * Get the file.
+     *
+     * @return The file.
+     */
+    public File getFile() {
+        return file;
     }
 }

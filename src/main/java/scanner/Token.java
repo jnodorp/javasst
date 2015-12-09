@@ -1,4 +1,6 @@
-package parser;
+package scanner;
+
+import java.io.File;
 
 /**
  * A token is an identifier used within a programming language. E.g. int, class, etc..
@@ -21,4 +23,25 @@ public interface Token<E extends Enum> {
      * @return The tokens identifier.
      */
     String getIdentifier();
+
+    /**
+     * Get the line in the parsed file.
+     *
+     * @return The line in the parsed file.
+     */
+    int getLine();
+
+    /**
+     * Get the column in the parsed file.
+     *
+     * @return The column in the parsed file.
+     */
+    int getColumn();
+
+    /**
+     * Get the parsed file.
+     *
+     * @return The parsed file.
+     */
+    File getFile();
 }

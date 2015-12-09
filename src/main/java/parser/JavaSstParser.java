@@ -1,7 +1,7 @@
 package parser;
 
-import scanner.Symbol;
-import scanner.SymbolType;
+import scanner.TokenImpl;
+import scanner.TokenType;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -10,12 +10,12 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static scanner.SymbolType.*;
+import static scanner.TokenType.*;
 
 /**
  * A parser for Java SST.
  */
-public class JavaSstParser extends Parser<Symbol, SymbolType> {
+public class JavaSstParser extends Parser<TokenImpl, TokenType> {
 
     /**
      * The logger.
@@ -32,7 +32,7 @@ public class JavaSstParser extends Parser<Symbol, SymbolType> {
      *
      * @param scanner The scanner.
      */
-    public JavaSstParser(final Iterator<Symbol> scanner) {
+    public JavaSstParser(final Iterator<TokenImpl> scanner) {
         super(scanner);
 
         this.symbolTable = new SymbolTable(null, null);
@@ -295,32 +295,30 @@ public class JavaSstParser extends Parser<Symbol, SymbolType> {
     /**
      * @see #error(List).
      */
-    private void error(SymbolType... expected) {
+    private void error(TokenType... expected) {
         error(Arrays.asList(expected));
     }
 
     @Override
-    protected void error(final List<SymbolType> expected) {
-        String string = "Unexpected token '" + token.getIdentifier() + "'" +
-                " of type '" + token.getType() + "'" +
-                " at '" + token.getPosition() + "'.";
+    protected void error(final List<TokenType> expected) {
+        String message = "Unexpected token " + System.lineSeparator() + token + System.lineSeparator();
 
         if (expected.size() > 0) {
-            string += " Expected token of one of the following types: " + expected.toString() + ".";
+            message += " Expected token of one of the following types: " + expected.toString() + ".";
         }
 
-        LOGGER.log(Level.SEVERE, string);
+        LOGGER.log(Level.SEVERE, message);
         throw new RuntimeException();
     }
 
     /**
-     * Get all possible first {@link SymbolType} of the construct c.
+     * Get all possible first {@link TokenType} of the construct c.
      *
      * @param c The construct.
      * @return The possible first token types of c.
      */
-    private List<SymbolType> first(String c) {
-        final ArrayList<SymbolType> result = new ArrayList<>();
+    private List<TokenType> first(String c) {
+        final ArrayList<TokenType> result = new ArrayList<>();
 
         switch (c) {
             case "type":
