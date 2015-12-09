@@ -42,8 +42,11 @@ public class JavaSstParser extends Parser {
      * Class: {@code class} {@code identifier} {@link #classBody()}.
      */
     private void clazz() {
+        String identifier;
+
         symbol().is(CLASS).once();
-        final String className = symbol.getIdentifier();
+
+        identifier = symbol.getIdentifier();
         symbol().is(IDENT).once();
 
         // Create the {@link SymbolTable} for the class.
@@ -52,7 +55,7 @@ public class JavaSstParser extends Parser {
 
         // Create the {@link ParserObject}.
         final ParserObject p = new ParserObjectClass(null, null, null, null, symbolTable);
-        p.setName(className);
+        p.setName(identifier);
 
         oldSymbolTable.setHead(p);
 
@@ -128,13 +131,7 @@ public class JavaSstParser extends Parser {
     }
 
     private void methodType() {
-        if (VOID == symbol.getType()) {
-            next();
-        } else if (first("type").contains(symbol.getType())) {
-            type();
-        } else {
-            error(VOID, INT);
-        }
+        symbol().is(VOID, INT).once();
     }
 
     private void formalParameters() {
@@ -295,6 +292,9 @@ public class JavaSstParser extends Parser {
         symbol().is(EOF).once();
     }
 
+    /**
+     * @see #error(List).
+     */
     private void error(SymbolType... expected) {
         error(Arrays.asList(expected));
     }

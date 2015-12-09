@@ -67,7 +67,7 @@ public abstract class Parser {
     }
 
     /**
-     *
+     * A pecification verifies, that the current {@link Symbol} is valid.
      */
     protected class Specification {
 
@@ -77,9 +77,9 @@ public abstract class Parser {
         private final List<SymbolType> expected;
 
         /**
-         * TODO: Documentation.
+         * Create a new specification.
          */
-        public Specification() {
+        private Specification() {
             this.expected = new ArrayList<>();
         }
 
@@ -105,6 +105,9 @@ public abstract class Parser {
         }
     }
 
+    /**
+     * As part of the specification the counter verifies the number of {@link Symbol}s to match.
+     */
     protected class Counter {
 
         /**
@@ -113,11 +116,11 @@ public abstract class Parser {
         private final List<SymbolType> expected;
 
         /**
-         * TODO: Add docs.
+         * Create a new counter expecting the given symbols.
          *
-         * @param expected TODO: Add docs.
+         * @param expected The expected symbols.
          */
-        public Counter(final List<SymbolType> expected) {
+        private Counter(final List<SymbolType> expected) {
             this.expected = expected;
         }
 
@@ -133,7 +136,9 @@ public abstract class Parser {
         }
 
         /**
-         * Check whether the symbol is available. Do nothing otherwise.
+         * If the {@link Specification} matches the current {@link Symbol} execute the function.
+         *
+         * @param function The function.
          */
         public void optional(final Runnable function) {
             if (expected.contains(symbol.getType())) {
@@ -142,7 +147,9 @@ public abstract class Parser {
         }
 
         /**
-         * TODO: Documentation.
+         * Repeat the function while the {@link Specification} matches the current {@link Symbol}.
+         *
+         * @param function The function.
          */
         public void repeat(final Runnable function) {
             while (expected.contains(symbol.getType())) {
