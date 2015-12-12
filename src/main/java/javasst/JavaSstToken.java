@@ -1,11 +1,13 @@
-package scanner;
+package javasst;
+
+import scanner.Token;
 
 import java.io.File;
 
 /**
  * This class contains constants for all terminal symbols.
  */
-public class TokenImpl implements Token<TokenType> {
+public class JavaSstToken implements Token<JavaSstTokenType> {
 
     /**
      * The identifier.
@@ -15,7 +17,7 @@ public class TokenImpl implements Token<TokenType> {
     /**
      * The type.
      */
-    private final TokenType type;
+    private final JavaSstTokenType type;
 
     /**
      * The line.
@@ -33,15 +35,15 @@ public class TokenImpl implements Token<TokenType> {
     private final File file;
 
     /**
-     * Create a new {@link TokenImpl}.
+     * Create a new {@link JavaSstToken}.
      *
      * @param identifier The identifier.
-     * @param type       The {@link TokenType}.
+     * @param type       The {@link JavaSstTokenType}.
      * @param line       The line.
      * @param column     The column.
      * @param file       The {@link File}.
      */
-    public TokenImpl(final String identifier, final TokenType type, final int line, final int column, final File file) {
+    public JavaSstToken(final String identifier, final JavaSstTokenType type, final int line, final int column, final File file) {
         this.identifier = identifier;
         this.type = type;
         this.line = line;
@@ -55,7 +57,7 @@ public class TokenImpl implements Token<TokenType> {
     }
 
     @Override
-    public TokenType getType() {
+    public JavaSstTokenType getType() {
         return type;
     }
 

@@ -1,35 +1,28 @@
+package javasst;
+
 import parser.*;
-import scanner.TokenImpl;
-import scanner.TokenType;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
-import static scanner.TokenType.*;
+import static javasst.JavaSstTokenType.*;
 
 /**
  * A parser for Java SST.
  */
-public class JavaSstParser extends Parser<TokenImpl, TokenType> {
-
-    /**
-     * The logger.
-     */
-    private static final Logger LOGGER = Logger.getLogger(JavaSstParser.class.getName());
+public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType> {
 
     /**
      * Create a new {@link Parser} based on the given scanner.
      *
      * @param scanner The scanner.
      */
-    public JavaSstParser(final Iterator<TokenImpl> scanner) {
+    public JavaSstParser(final Iterator<JavaSstToken> scanner) {
         super(scanner);
 
-        this.symbolTable = new SymbolTable(null, null);
+        this.symbolTable = new SymbolTable(null);
     }
 
     /**
@@ -37,7 +30,7 @@ public class JavaSstParser extends Parser<TokenImpl, TokenType> {
      */
     private void clazz() {
         scope(() -> {
-            token().is(CLASS).once();
+            token().is(JavaSstTokenType.CLASS).once();
             final String identifier = token.getIdentifier();
             token().is(IDENT).once();
 
@@ -186,31 +179,27 @@ public class JavaSstParser extends Parser<TokenImpl, TokenType> {
     }
 
     private void ifStatement() {
-        scope(() -> {
-            token().is(IF).once();
-            token().is(PARENTHESIS_OPEN).once();
-            expression();
-            token().is(PARENTHESIS_CLOSE).once();
-            token().is(CURLY_BRACE_OPEN).once();
-            statementSequence();
-            token().is(CURLY_BRACE_CLOSE).once();
-            token().is(ELSE).once();
-            token().is(CURLY_BRACE_OPEN).once();
-            statementSequence();
-            token().is(CURLY_BRACE_CLOSE).once();
-        });
+        token().is(IF).once();
+        token().is(PARENTHESIS_OPEN).once();
+        expression();
+        token().is(PARENTHESIS_CLOSE).once();
+        token().is(CURLY_BRACE_OPEN).once();
+        statementSequence();
+        token().is(CURLY_BRACE_CLOSE).once();
+        token().is(ELSE).once();
+        token().is(CURLY_BRACE_OPEN).once();
+        statementSequence();
+        token().is(CURLY_BRACE_CLOSE).once();
     }
 
     private void whileStatement() {
-        scope(() -> {
-            token().is(WHILE).once();
-            token().is(PARENTHESIS_OPEN).once();
-            expression();
-            token().is(PARENTHESIS_CLOSE).once();
-            token().is(CURLY_BRACE_OPEN).once();
-            statementSequence();
-            token().is(CURLY_BRACE_CLOSE).once();
-        });
+        token().is(WHILE).once();
+        token().is(PARENTHESIS_OPEN).once();
+        expression();
+        token().is(PARENTHESIS_CLOSE).once();
+        token().is(CURLY_BRACE_OPEN).once();
+        statementSequence();
+        token().is(CURLY_BRACE_CLOSE).once();
     }
 
     private void returnStatement() {
@@ -285,30 +274,18 @@ public class JavaSstParser extends Parser<TokenImpl, TokenType> {
     /**
      * @see #error(List).
      */
-    private void error(TokenType... expected) {
+    private void error(JavaSstTokenType... expected) {
         error(Arrays.asList(expected));
     }
 
-    @Override
-    protected void error(final List<TokenType> expected) {
-        String message = "Unexpected token " + System.lineSeparator() + token + System.lineSeparator();
-
-        if (expected.size() > 0) {
-            message += " Expected token of one of the following types: " + expected.toString() + ".";
-        }
-
-        LOGGER.log(Level.SEVERE, message);
-        throw new RuntimeException();
-    }
-
     /**
-     * Get all possible first {@link TokenType} of the construct c.
+     * Get all possible first {@link JavaSstTokenType} of the construct c.
      *
      * @param c The construct.
      * @return The possible first token types of c.
      */
-    private List<TokenType> first(String c) {
-        final ArrayList<TokenType> result = new ArrayList<>();
+    private List<JavaSstTokenType> first(String c) {
+        final ArrayList<JavaSstTokenType> result = new ArrayList<>();
 
         switch (c) {
             case "type":

@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
@@ -15,6 +16,11 @@ import java.util.logging.Logger;
  * @param <E> The {@link Token}s type.
  */
 public abstract class Parser<T extends Token<E>, E extends Enum> {
+
+    /**
+     * The logger.
+     */
+    private static final Logger LOGGER = Logger.getLogger(Parser.class.getName());
 
     /**
      * The scanner.
@@ -45,7 +51,7 @@ public abstract class Parser<T extends Token<E>, E extends Enum> {
      */
     protected void next() {
         this.token = scanner.next();
-        Logger.getLogger(this.getClass().getName()).info(this.token.toString());
+        LOGGER.info(this.token.toString());
     }
 
     /**
@@ -55,7 +61,7 @@ public abstract class Parser<T extends Token<E>, E extends Enum> {
      */
     protected void scope(Runnable runnable) {
         final SymbolTable oldSymbolTable = symbolTable;
-        symbolTable = new SymbolTable(null, oldSymbolTable);
+        symbolTable = new SymbolTable(oldSymbolTable);
         runnable.run();
         symbolTable = oldSymbolTable;
     }
@@ -63,7 +69,16 @@ public abstract class Parser<T extends Token<E>, E extends Enum> {
     /**
      * Switch to the error state.
      */
-    protected abstract void error(final List<E> expected);
+    protected void error(final List<E> expected) {
+        String message = "Unexpected token " + System.lineSeparator() + token + System.lineSeparator();
+
+        if (expected.size() > 0) {
+            message += " Expected token of one of the following types: " + expected.toString() + ".";
+        }
+
+        LOGGER.log(Level.SEVERE, message);
+        throw new RuntimeException();
+    }
 
     /**
      * Start the parsing process (by calling the start node method).

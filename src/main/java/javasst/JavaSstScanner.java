@@ -1,23 +1,18 @@
-import scanner.Input;
-import scanner.TokenImpl;
-import scanner.TokenType;
+package javasst;
 
-import java.util.Arrays;
+import scanner.Input;
+import scanner.Scanner;
+
 import java.util.InputMismatchException;
-import java.util.Iterator;
 import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Pattern;
+
+import static javasst.JavaSstTokenType.*;
 
 /**
  * This class processes input provided by an {@link Input} instance.
  */
-public class JavaSstScanner implements Iterator<TokenImpl> {
-
-    /**
-     * The logger.
-     */
-    private static final Logger LOGGER = Logger.getLogger(JavaSstScanner.class.getName());
+public class JavaSstScanner extends Scanner<JavaSstToken, JavaSstTokenType> {
 
     /**
      * A pattern matching digits.
@@ -30,24 +25,9 @@ public class JavaSstScanner implements Iterator<TokenImpl> {
     private static final Pattern LETTER = Pattern.compile("[a-zA-Z]");
 
     /**
-     * The {@link Input} stream.
-     */
-    private final Input input;
-
-    /**
-     * The last read character.
-     */
-    private char current;
-
-    /**
      * If the currently read characters are in a comment.
      */
     private boolean comment = false;
-
-    /**
-     * The read characters since the last token.
-     */
-    private String stack;
 
     /**
      * Create a new {@link JavaSstScanner} which processes the input provided by an {@link Input} instance.
@@ -55,18 +35,13 @@ public class JavaSstScanner implements Iterator<TokenImpl> {
      * @param input The {@link Input} instance.
      */
     public JavaSstScanner(final Input input) {
-        this.input = input;
+        super(input);
     }
 
     @Override
-    public boolean hasNext() {
-        return input.hasNext();
-    }
-
-    @Override
-    public TokenImpl next() {
+    public JavaSstToken next() {
         stack = "";
-        TokenType symbol = null;
+        JavaSstTokenType symbol = null;
 
         // Skip whitespaces.
         while (current <= ' ') {
@@ -80,83 +55,83 @@ public class JavaSstScanner implements Iterator<TokenImpl> {
         LOGGER.log(Level.INFO, "Matching character '" + current + "'.");
         switch (current) {
             case '{':
-                symbol = TokenType.CURLY_BRACE_OPEN;
+                symbol = CURLY_BRACE_OPEN;
                 break;
             case '}':
-                symbol = TokenType.CURLY_BRACE_CLOSE;
+                symbol = CURLY_BRACE_CLOSE;
                 break;
             case ';':
-                symbol = TokenType.SEMICOLON;
+                symbol = SEMICOLON;
                 break;
             case '(':
-                symbol = TokenType.PARENTHESIS_OPEN;
+                symbol = PARENTHESIS_OPEN;
                 break;
             case ')':
-                symbol = TokenType.PARENTHESIS_CLOSE;
+                symbol = PARENTHESIS_CLOSE;
                 break;
             case ',':
-                symbol = TokenType.COMMA;
+                symbol = COMMA;
                 break;
             case '+':
-                symbol = TokenType.PLUS;
+                symbol = PLUS;
                 break;
             case '-':
-                symbol = TokenType.MINUS;
+                symbol = MINUS;
                 break;
             case '*':
-                symbol = lookahead("*/", TokenType.COMMENT_STOP, TokenType.TIMES);
+                symbol = lookahead("*/", COMMENT_STOP, TIMES);
                 break;
             case '/':
-                symbol = lookahead("/*", TokenType.COMMENT_START, TokenType.SLASH);
+                symbol = lookahead("/*", COMMENT_START, SLASH);
                 break;
             case '<':
-                symbol = lookahead("<=", TokenType.LESS_THAN_EQUALS, TokenType.LESS_THAN);
+                symbol = lookahead("<=", LESS_THAN_EQUALS, LESS_THAN);
                 break;
             case '>':
-                symbol = lookahead(">=", TokenType.GREATER_THAN_EQUALS, TokenType.GREATER_THAN);
+                symbol = lookahead(">=", GREATER_THAN_EQUALS, GREATER_THAN);
                 break;
             case '=':
-                symbol = lookahead("==", TokenType.EQUALS_EQUALS, TokenType.EQUALS);
+                symbol = lookahead("==", EQUALS_EQUALS, EQUALS);
                 break;
             case 'c':
-                symbol = lookahead("class", TokenType.CLASS, null);
+                symbol = lookahead("class", CLASS, null);
                 break;
             case 'e':
-                symbol = lookahead("else", TokenType.ELSE, null);
+                symbol = lookahead("else", ELSE, null);
                 break;
             case 'f':
-                symbol = lookahead("final", TokenType.FINAL, null);
+                symbol = lookahead("final", FINAL, null);
                 break;
             case 'i':
-                if (lookahead("if", TokenType.IF, null) != null) {
-                    symbol = TokenType.IF;
-                } else if (lookahead("int", TokenType.INT, null) != null) {
-                    symbol = TokenType.INT;
+                if (lookahead("if", IF, null) != null) {
+                    symbol = IF;
+                } else if (lookahead("int", INT, null) != null) {
+                    symbol = INT;
                 } else {
                     symbol = null;
                 }
                 break;
             case 'p':
-                symbol = lookahead("public", TokenType.PUBLIC, null);
+                symbol = lookahead("public", PUBLIC, null);
                 break;
             case 'r':
-                symbol = lookahead("return", TokenType.RETURN, null);
+                symbol = lookahead("return", RETURN, null);
                 break;
             case 'v':
-                symbol = lookahead("void", TokenType.VOID, null);
+                symbol = lookahead("void", VOID, null);
                 break;
             case 'w':
-                symbol = lookahead("while", TokenType.WHILE, null);
+                symbol = lookahead("while", WHILE, null);
                 break;
             case (char) -1:
-                symbol = TokenType.EOF;
+                symbol = EOF;
                 break;
             default:
                 if (DIGIT.matcher("" + current).matches()) {
                     while (DIGIT.matcher("" + current).matches()) {
                         current = input.next();
                         stack += current;
-                        symbol = TokenType.NUMBER;
+                        symbol = NUMBER;
                     }
                 }
         }
@@ -165,12 +140,12 @@ public class JavaSstScanner implements Iterator<TokenImpl> {
             while (LETTER.matcher("" + current).matches() || DIGIT.matcher("" + current).matches()) {
                 current = input.next();
                 stack += current;
-                symbol = TokenType.IDENT;
+                symbol = IDENT;
             }
         }
 
         int positionBias = 0;
-        if (symbol == TokenType.IDENT || symbol == TokenType.NUMBER) {
+        if (symbol == IDENT || symbol == NUMBER) {
             stack = stack.substring(0, stack.length() - 1);
             positionBias++;
         } else {
@@ -181,12 +156,12 @@ public class JavaSstScanner implements Iterator<TokenImpl> {
             positionBias++;
         }
 
-        if (symbol == TokenType.COMMENT_START) {
+        if (symbol == COMMENT_START) {
             comment = true;
             return next();
         }
 
-        if (symbol == TokenType.COMMENT_STOP) {
+        if (symbol == COMMENT_STOP) {
             comment = false;
             return next();
         }
@@ -202,32 +177,7 @@ public class JavaSstScanner implements Iterator<TokenImpl> {
 
         LOGGER.log(Level.INFO, "Found token '" + symbol + "' with stack '" + stack + "'.");
 
-        return new TokenImpl(stack, symbol, input.getLine(), input.getColumn() - (stack.length() - positionBias),
+        return new JavaSstToken(stack, symbol, input.getLine(), input.getColumn() - (stack.length() - positionBias),
                 input.getFile());
-    }
-
-    /**
-     * Perform a lookahead.
-     *
-     * @param match   The characters to look at.
-     * @param success TokenImpl type to return on match.
-     * @param failure TokenImpl type to return on mismatch.
-     * @return One of the specified symbols.
-     */
-    private TokenType lookahead(final String match, final TokenType success, final TokenType failure) {
-        String newMatch = match.substring(1);
-
-        final StringBuilder lookahead = new StringBuilder();
-        Arrays.stream(input.lookahead(newMatch.getBytes().length)).forEach(lookahead::append);
-
-        if (newMatch.equals(lookahead.toString())) {
-            stack = match;
-            for (int i = 0; i < newMatch.getBytes().length; i++) {
-                input.next();
-            }
-            return success;
-        } else {
-            return failure;
-        }
     }
 }

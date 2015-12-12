@@ -1,9 +1,9 @@
-package scanner;
+package javasst;
 
 /**
- * Enumeration of possible {@link Token} types.
+ * Enumeration of possible {@link scanner.Token} types.
  */
-public enum TokenType {
+public enum JavaSstTokenType {
     CLASS, CURLY_BRACE_OPEN, CURLY_BRACE_CLOSE, FINAL, EQUALS, SEMICOLON, PUBLIC, VOID, PARENTHESIS_OPEN,
     PARENTHESIS_CLOSE, COMMA, INT, IF, ELSE, WHILE, RETURN, EQUALS_EQUALS, LESS_THAN, LESS_THAN_EQUALS,
     GREATER_THAN, GREATER_THAN_EQUALS, PLUS, MINUS, TIMES, SLASH, COMMENT_START, COMMENT_STOP, IDENT, NUMBER, EOF

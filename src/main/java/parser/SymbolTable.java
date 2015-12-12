@@ -1,23 +1,14 @@
 package parser;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Optional;
-
 /**
  * A token table.
  */
 public class SymbolTable {
 
     /**
-     * The {@link ParserObject}s.
+     * The enclosing symbol table.
      */
-    private final List<ParserObject> parserObjects;
-
-    /**
-     * The enclosing token table.
-     */
-    private SymbolTable enclose;
+    private final SymbolTable enclose;
 
     /**
      * The head.
@@ -25,15 +16,12 @@ public class SymbolTable {
     private ParserObject head;
 
     /**
-     * Create a new token table.
+     * Create a new symbol table.
      *
-     * @param head    The head.
      * @param enclose The enclosing token table.
      */
-    public SymbolTable(final ParserObject head, final SymbolTable enclose) {
-        this.head = head;
+    public SymbolTable(final SymbolTable enclose) {
         this.enclose = enclose;
-        this.parserObjects = new LinkedList<>();
     }
 
     /**
@@ -64,22 +52,12 @@ public class SymbolTable {
     }
 
     /**
-     * Set the enclosing token table.
-     *
-     * @param enclose The enclosing token table.
-     */
-    public void setEnclose(final SymbolTable enclose) {
-        this.enclose = enclose;
-    }
-
-    /**
      * Insert a {@link ParserObject}.
      *
      * @param object The {@link ParserObject}.
      */
     public void insert(ParserObject object) {
         object.setNext(null);
-        parserObjects.add(object);
 
         if (head == null) {
             head = object;
@@ -96,14 +74,10 @@ public class SymbolTable {
     /**
      * Get a {@link ParserObject}.
      *
-     * @param name        The name.
-     * @param objectClass The {@link ObjectClass}.
+     * @param name The name.
      * @return The {@link ParserObject}.
      */
-    public ParserObject getObject(final String name, final ObjectClass objectClass) {
-        Optional<ParserObject> parserObject = parserObjects.stream().filter(p -> p.getName().equals(name)).filter(p
-                -> p.getParserObjectClass().equals(objectClass)).findAny();
-
-        return parserObject.orElse(null);
+    public ParserObject getObject(final String name/* , final ObjectClass objectClass */) {
+        return null; // FIXME
     }
 }
