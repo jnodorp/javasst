@@ -5,10 +5,11 @@ import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
 import scanner.Input;
+import scanner.Scanner;
 
 import java.io.File;
-import java.util.Iterator;
 
+import static javasst.JavaSstTokenType.*;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -25,7 +26,7 @@ public class JavaSstScannerTest {
     /**
      * The scanner under test.
      */
-    private Iterator<JavaSstToken> scanner;
+    private Scanner<JavaSstToken, JavaSstTokenType> scanner;
 
     @Before
     public void setUp() throws Exception {
@@ -39,141 +40,165 @@ public class JavaSstScannerTest {
 
         // class class NiceClassName6 {
         symbol = scanner.next();
-        Assert.assertEquals(JavaSstTokenType.CLASS, symbol.getType());
+        Assert.assertEquals(CLASS, symbol.getType());
         assertEquals("class", symbol.getIdentifier());
         assertEquals(FILE, symbol.getFile().toString());
         assertEquals(4, symbol.getLine());
         assertEquals(1, symbol.getColumn());
 
         symbol = scanner.next();
-        assertEquals(JavaSstTokenType.IDENT, symbol.getType());
+        assertEquals(IDENT, symbol.getType());
         assertEquals("NiceClassName6", symbol.getIdentifier());
         assertEquals(FILE, symbol.getFile().toString());
         assertEquals(4, symbol.getLine());
-        assertEquals(8, symbol.getColumn()); // FIXME: Should be 7.
+        assertEquals(7, symbol.getColumn());
 
         symbol = scanner.next();
-        assertEquals(JavaSstTokenType.CURLY_BRACE_OPEN, symbol.getType());
+        assertEquals(CURLY_BRACE_OPEN, symbol.getType());
         assertEquals("{", symbol.getIdentifier());
         assertEquals(FILE, symbol.getFile().toString());
         assertEquals(4, symbol.getLine());
-        assertEquals(23, symbol.getColumn()); // FIXME: Should be 22.
+        assertEquals(22, symbol.getColumn());
 
         // final int const1 = 123;
         symbol = scanner.next();
-        assertEquals(JavaSstTokenType.FINAL, symbol.getType());
+        assertEquals(FINAL, symbol.getType());
         assertEquals("final", symbol.getIdentifier());
         assertEquals(FILE, symbol.getFile().toString());
         assertEquals(5, symbol.getLine());
         assertEquals(5, symbol.getColumn());
 
         symbol = scanner.next();
-        assertEquals(JavaSstTokenType.INT, symbol.getType());
+        assertEquals(INT, symbol.getType());
         assertEquals("int", symbol.getIdentifier());
         assertEquals(FILE, symbol.getFile().toString());
         assertEquals(5, symbol.getLine());
         assertEquals(11, symbol.getColumn());
 
         symbol = scanner.next();
-        assertEquals(JavaSstTokenType.IDENT, symbol.getType());
-        assertEquals("const1", symbol.getIdentifier());
+        assertEquals(IDENT, symbol.getType());
+        assertEquals("intConst1", symbol.getIdentifier());
         assertEquals(FILE, symbol.getFile().toString());
         assertEquals(5, symbol.getLine());
         assertEquals(15, symbol.getColumn());
 
         symbol = scanner.next();
-        assertEquals(JavaSstTokenType.EQUALS, symbol.getType());
+        assertEquals(EQUALS, symbol.getType());
         assertEquals("=", symbol.getIdentifier());
         assertEquals(FILE, symbol.getFile().toString());
         assertEquals(5, symbol.getLine());
-        assertEquals(22, symbol.getColumn());
+        assertEquals(25, symbol.getColumn());
 
         symbol = scanner.next();
-        assertEquals(JavaSstTokenType.NUMBER, symbol.getType());
+        assertEquals(NUMBER, symbol.getType());
         assertEquals("123", symbol.getIdentifier());
-        assertEquals(FILE, symbol.getFile().toString());
-        assertEquals(5, symbol.getLine());
-        assertEquals(24, symbol.getColumn());
-
-        symbol = scanner.next();
-        assertEquals(JavaSstTokenType.SEMICOLON, symbol.getType());
-        assertEquals(";", symbol.getIdentifier());
         assertEquals(FILE, symbol.getFile().toString());
         assertEquals(5, symbol.getLine());
         assertEquals(27, symbol.getColumn());
 
-        // final int const2 = const1 * const1;
-        assertEquals(JavaSstTokenType.FINAL, scanner.next().getType());
-        assertEquals(JavaSstTokenType.INT, scanner.next().getType());
-        assertEquals(JavaSstTokenType.IDENT, scanner.next().getType());
-        assertEquals(JavaSstTokenType.EQUALS, scanner.next().getType());
-        assertEquals(JavaSstTokenType.IDENT, scanner.next().getType());
-        assertEquals(JavaSstTokenType.TIMES, scanner.next().getType());
-        assertEquals(JavaSstTokenType.IDENT, scanner.next().getType());
-        assertEquals(JavaSstTokenType.SEMICOLON, scanner.next().getType());
+        symbol = scanner.next();
+        assertEquals(SEMICOLON, symbol.getType());
+        assertEquals(";", symbol.getIdentifier());
+        assertEquals(FILE, symbol.getFile().toString());
+        assertEquals(5, symbol.getLine());
+        assertEquals(30, symbol.getColumn());
+
+        // final int intConst2 = intConst1 * intConst1;
+        symbol = scanner.next();
+        assertEquals(FINAL, symbol.getType());
+        assertEquals("final", symbol.getIdentifier());
+        assertEquals(FILE, symbol.getFile().toString());
+        assertEquals(6, symbol.getLine());
+        assertEquals(5, symbol.getColumn());
+
+        symbol = scanner.next();
+        assertEquals(INT, symbol.getType());
+        assertEquals("int", symbol.getIdentifier());
+        assertEquals(FILE, symbol.getFile().toString());
+        assertEquals(6, symbol.getLine());
+        assertEquals(11, symbol.getColumn());
+
+        symbol = scanner.next();
+        assertEquals(IDENT, symbol.getType());
+        assertEquals("intConst2", symbol.getIdentifier());
+        assertEquals(FILE, symbol.getFile().toString());
+        assertEquals(6, symbol.getLine());
+        assertEquals(15, symbol.getColumn());
+
+        symbol = scanner.next();
+        assertEquals(EQUALS, symbol.getType());
+        assertEquals("=", symbol.getIdentifier());
+        assertEquals(FILE, symbol.getFile().toString());
+        assertEquals(6, symbol.getLine());
+        assertEquals(25, symbol.getColumn());
+
+        assertEquals(IDENT, scanner.next().getType());
+        assertEquals(TIMES, scanner.next().getType());
+        assertEquals(IDENT, scanner.next().getType());
+        assertEquals(SEMICOLON, scanner.next().getType());
 
         // int var1;
-        assertEquals(JavaSstTokenType.INT, scanner.next().getType());
-        assertEquals(JavaSstTokenType.IDENT, scanner.next().getType());
-        assertEquals(JavaSstTokenType.SEMICOLON, scanner.next().getType());
-
-        // public void setVar1(int x) {
-        assertEquals(JavaSstTokenType.PUBLIC, scanner.next().getType());
-        assertEquals(JavaSstTokenType.VOID, scanner.next().getType());
-        assertEquals(JavaSstTokenType.IDENT, scanner.next().getType());
-        assertEquals(JavaSstTokenType.PARENTHESIS_OPEN, scanner.next().getType());
-        assertEquals(JavaSstTokenType.INT, scanner.next().getType());
-        assertEquals(JavaSstTokenType.IDENT, scanner.next().getType());
-        assertEquals(JavaSstTokenType.PARENTHESIS_CLOSE, scanner.next().getType());
-        assertEquals(JavaSstTokenType.CURLY_BRACE_OPEN, scanner.next().getType());
-
-        // var1 = x;
-        assertEquals(JavaSstTokenType.IDENT, scanner.next().getType());
-        assertEquals(JavaSstTokenType.EQUALS, scanner.next().getType());
-        assertEquals(JavaSstTokenType.IDENT, scanner.next().getType());
-        assertEquals(JavaSstTokenType.SEMICOLON, scanner.next().getType());
-
-        // }
-        assertEquals(JavaSstTokenType.CURLY_BRACE_CLOSE, scanner.next().getType());
+        assertEquals(INT, scanner.next().getType());
+        assertEquals(IDENT, scanner.next().getType());
+        assertEquals(SEMICOLON, scanner.next().getType());
 
         // public int getVar1() {
-        assertEquals(JavaSstTokenType.PUBLIC, scanner.next().getType());
-        assertEquals(JavaSstTokenType.INT, scanner.next().getType());
-        assertEquals(JavaSstTokenType.IDENT, scanner.next().getType());
-        assertEquals(JavaSstTokenType.PARENTHESIS_OPEN, scanner.next().getType());
-        assertEquals(JavaSstTokenType.PARENTHESIS_CLOSE, scanner.next().getType());
-        assertEquals(JavaSstTokenType.CURLY_BRACE_OPEN, scanner.next().getType());
+        assertEquals(PUBLIC, scanner.next().getType());
+        assertEquals(INT, scanner.next().getType());
+        assertEquals(IDENT, scanner.next().getType());
+        assertEquals(PARENTHESIS_OPEN, scanner.next().getType());
+        assertEquals(PARENTHESIS_CLOSE, scanner.next().getType());
+        assertEquals(CURLY_BRACE_OPEN, scanner.next().getType());
 
         // return var1;
-        assertEquals(JavaSstTokenType.RETURN, scanner.next().getType());
-        assertEquals(JavaSstTokenType.IDENT, scanner.next().getType());
-        assertEquals(JavaSstTokenType.SEMICOLON, scanner.next().getType());
+        assertEquals(RETURN, scanner.next().getType());
+        assertEquals(IDENT, scanner.next().getType());
+        assertEquals(SEMICOLON, scanner.next().getType());
 
         // }
-        assertEquals(JavaSstTokenType.CURLY_BRACE_CLOSE, scanner.next().getType());
+        assertEquals(CURLY_BRACE_CLOSE, scanner.next().getType());
+
+        // public void setIntVar1(int x) {
+        assertEquals(PUBLIC, scanner.next().getType());
+        assertEquals(VOID, scanner.next().getType());
+        assertEquals(IDENT, scanner.next().getType());
+        assertEquals(PARENTHESIS_OPEN, scanner.next().getType());
+        assertEquals(INT, scanner.next().getType());
+        assertEquals(IDENT, scanner.next().getType());
+        assertEquals(PARENTHESIS_CLOSE, scanner.next().getType());
+        assertEquals(CURLY_BRACE_OPEN, scanner.next().getType());
+
+        // var1 = x;
+        assertEquals(IDENT, scanner.next().getType());
+        assertEquals(EQUALS, scanner.next().getType());
+        assertEquals(IDENT, scanner.next().getType());
+        assertEquals(SEMICOLON, scanner.next().getType());
+
+        // }
+        assertEquals(CURLY_BRACE_CLOSE, scanner.next().getType());
 
         // public void incrementVar1() {
-        assertEquals(JavaSstTokenType.PUBLIC, scanner.next().getType());
-        assertEquals(JavaSstTokenType.VOID, scanner.next().getType());
-        assertEquals(JavaSstTokenType.IDENT, scanner.next().getType());
-        assertEquals(JavaSstTokenType.PARENTHESIS_OPEN, scanner.next().getType());
-        assertEquals(JavaSstTokenType.PARENTHESIS_CLOSE, scanner.next().getType());
-        assertEquals(JavaSstTokenType.CURLY_BRACE_OPEN, scanner.next().getType());
+        assertEquals(PUBLIC, scanner.next().getType());
+        assertEquals(VOID, scanner.next().getType());
+        assertEquals(IDENT, scanner.next().getType());
+        assertEquals(PARENTHESIS_OPEN, scanner.next().getType());
+        assertEquals(PARENTHESIS_CLOSE, scanner.next().getType());
+        assertEquals(CURLY_BRACE_OPEN, scanner.next().getType());
 
         // var1 = getVar1() + 1;
-        assertEquals(JavaSstTokenType.IDENT, scanner.next().getType());
-        assertEquals(JavaSstTokenType.EQUALS, scanner.next().getType());
-        assertEquals(JavaSstTokenType.IDENT, scanner.next().getType());
-        assertEquals(JavaSstTokenType.PARENTHESIS_OPEN, scanner.next().getType());
-        assertEquals(JavaSstTokenType.PARENTHESIS_CLOSE, scanner.next().getType());
-        assertEquals(JavaSstTokenType.PLUS, scanner.next().getType());
-        assertEquals(JavaSstTokenType.NUMBER, scanner.next().getType());
-        assertEquals(JavaSstTokenType.SEMICOLON, scanner.next().getType());
+        assertEquals(IDENT, scanner.next().getType());
+        assertEquals(EQUALS, scanner.next().getType());
+        assertEquals(IDENT, scanner.next().getType());
+        assertEquals(PARENTHESIS_OPEN, scanner.next().getType());
+        assertEquals(PARENTHESIS_CLOSE, scanner.next().getType());
+        assertEquals(PLUS, scanner.next().getType());
+        assertEquals(NUMBER, scanner.next().getType());
+        assertEquals(SEMICOLON, scanner.next().getType());
 
         // }
-        assertEquals(JavaSstTokenType.CURLY_BRACE_CLOSE, scanner.next().getType());
+        assertEquals(CURLY_BRACE_CLOSE, scanner.next().getType());
 
         // }
-        assertEquals(JavaSstTokenType.CURLY_BRACE_CLOSE, scanner.next().getType());
+        assertEquals(CURLY_BRACE_CLOSE, scanner.next().getType());
     }
 }

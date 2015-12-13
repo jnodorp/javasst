@@ -1,0 +1,9 @@
+class A {
+    final int b = 3;
+
+    public int f(int x) {
+        int a;
+        a = b * x;
+        return a;
+    }
+}

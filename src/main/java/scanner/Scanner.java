@@ -2,6 +2,7 @@ package scanner;
 
 import java.util.Arrays;
 import java.util.logging.Logger;
+import java.util.regex.Pattern;
 
 /**
  * This class processes input provided by an {@link Input} instance.
@@ -53,11 +54,27 @@ public abstract class Scanner<T extends Token<E>, E extends Enum> {
      * @return One of the specified {@link Token} types.
      */
     protected E lookahead(final String match, final E success, final E failure) {
-        final String newMatch = match.substring(1);
-        final StringBuilder lookahead = new StringBuilder();
-        Arrays.stream(input.lookahead(newMatch.getBytes().length)).forEach(lookahead::append);
+        return lookahead(match, success, failure, null);
+    }
 
-        if (newMatch.equals(lookahead.toString())) {
+    /**
+     * Perform a lookahead.
+     *
+     * @param match   The characters to look at.
+     * @param success {@link Token} type to return on match.
+     * @param failure {@link Token} type to return on mismatch.
+     * @param endedBy A pattern matching a valid right delimiter for this lookahead.
+     * @return One of the specified {@link Token} types.
+     */
+    protected E lookahead(final String match, final E success, final E failure, final Pattern endedBy) {
+        final String newMatch = match.substring(1);
+        final StringBuilder lookaheadBuilder = new StringBuilder();
+        Arrays.stream(input.lookahead(newMatch.getBytes().length + 1)).forEach(lookaheadBuilder::append);
+        final String lookahead = lookaheadBuilder.toString().substring(0, lookaheadBuilder.length() - 1);
+        final String next = lookaheadBuilder.toString().substring(lookahead.length(), lookaheadBuilder.length());
+
+        final boolean delimited = endedBy == null || endedBy.matcher(next).matches();
+        if (newMatch.equals(lookahead) && delimited) {
             stack = match;
             for (int i = 0; i < newMatch.getBytes().length; i++) {
                 input.next();

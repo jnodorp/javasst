@@ -16,7 +16,9 @@ public class InputTest {
         Input input = new Input("src/test/resources/input_test.txt");
 
         assertTrue(input.hasNext());
-        assertEquals("A", "" + input.next());
+        assertTrue(input.hasNext());
+        assertEquals(new Character('A'), input.next());
+        assertFalse(input.hasNext());
         assertFalse(input.hasNext());
     }
 

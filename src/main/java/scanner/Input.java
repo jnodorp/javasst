@@ -42,7 +42,7 @@ public class Input implements Iterator<Character> {
      * @see FileInputStream#FileInputStream(String)
      */
     public Input(final String name) throws FileNotFoundException {
-        this.inputStream = new MultiMarkInputStream(new FileInputStream(name));
+        this.inputStream = new BufferedInputStream(new FileInputStream(name));
         this.file = new File(name);
     }
 
@@ -53,9 +53,14 @@ public class Input implements Iterator<Character> {
 
         try {
             next = inputStream.read();
-            inputStream.reset();
         } catch (IOException e) {
-            LOGGER.log(Level.SEVERE, "Exception while reading or resetting underlying input stream.", e);
+            LOGGER.log(Level.SEVERE, "Exception while reading underlying input stream.", e);
+        } finally {
+            try {
+                inputStream.reset();
+            } catch (IOException e) {
+                LOGGER.log(Level.SEVERE, "Exception while resetting underlying input stream.", e);
+            }
         }
 
         return next != -1;

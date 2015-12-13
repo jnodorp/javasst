@@ -1,11 +1,12 @@
 package javasst;
 
 import parser.*;
+import scanner.Scanner;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
+import java.util.function.Consumer;
 
 import static javasst.JavaSstTokenType.*;
 
@@ -15,14 +16,18 @@ import static javasst.JavaSstTokenType.*;
 public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType> {
 
     /**
+     * The {@link ParserObjectClass}.
+     */
+    private ParserObjectClass parserObjectClass;
+
+    /**
      * Create a new {@link Parser} based on the given scanner.
      *
      * @param scanner The scanner.
      */
-    public JavaSstParser(final Iterator<JavaSstToken> scanner) {
+    public JavaSstParser(final Scanner<JavaSstToken, JavaSstTokenType> scanner) {
         super(scanner);
-
-        this.symbolTable = new SymbolTable(null);
+        symbolTable = new SymbolTable(null);
     }
 
     /**
@@ -35,13 +40,13 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType> {
             token().is(IDENT).once();
 
             // Create the {@link ParserObject}.
-            final ParserObject p = new ParserObjectClass(null, null, null, null, symbolTable);
-            p.setName(identifier);
-
-            symbolTable.setHead(p);
+            parserObjectClass = new ParserObjectClass(symbolTable);
+            parserObjectClass.setName(identifier);
 
             classBody();
         });
+
+        symbolTable.insert(parserObjectClass);
     }
 
     /**
@@ -97,12 +102,14 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType> {
         // Get the method name.
         final String identifier = token.getIdentifier();
 
-        token().is(IDENT).once();
-        formalParameters();
-        token().is(CURLY_BRACE_OPEN).once();
-        token().is(first("local_declaration")).repeat(this::localDeclaration);
-        statementSequence();
-        token().is(CURLY_BRACE_CLOSE).once();
+        scope(() -> {
+            token().is(IDENT).once();
+            formalParameters();
+            token().is(CURLY_BRACE_OPEN).once();
+            token().is(first("local_declaration")).repeat(this::localDeclaration);
+            statementSequence();
+            token().is(CURLY_BRACE_CLOSE).once();
+        });
 
         ParserObject p = new ParserObjectProcedure(null, null, null);
         p.setName(identifier);
@@ -262,6 +269,11 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType> {
         } else {
             error(IDENT, NUMBER, PARENTHESIS_OPEN);
         }
+    }
+
+    public void parse(Consumer<SymbolTable> symbolTableConsumer) {
+        parse();
+        symbolTableConsumer.accept(symbolTable);
     }
 
     @Override

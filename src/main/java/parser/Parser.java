@@ -1,10 +1,9 @@
 package parser;
 
+import scanner.Scanner;
 import scanner.Token;
 
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Iterator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -25,7 +24,7 @@ public abstract class Parser<T extends Token<E>, E extends Enum> {
     /**
      * The scanner.
      */
-    protected Iterator<T> scanner;
+    protected Scanner<T, E> scanner;
 
     /**
      * The current token.
@@ -42,7 +41,7 @@ public abstract class Parser<T extends Token<E>, E extends Enum> {
      *
      * @param scanner The scanner.
      */
-    public Parser(final Iterator<T> scanner) {
+    public Parser(final Scanner<T, E> scanner) {
         this.scanner = scanner;
     }
 
@@ -51,7 +50,7 @@ public abstract class Parser<T extends Token<E>, E extends Enum> {
      */
     protected void next() {
         this.token = scanner.next();
-        LOGGER.info(this.token.toString());
+        LOGGER.fine(this.token.toString());
     }
 
     /**
@@ -100,15 +99,10 @@ public abstract class Parser<T extends Token<E>, E extends Enum> {
     protected class Specification {
 
         /**
-         * The expected tokens.
-         */
-        private final List<E> expected;
-
-        /**
          * Create a new specification.
          */
         private Specification() {
-            this.expected = new ArrayList<>();
+            // Hidden constructor.
         }
 
         /**
@@ -119,8 +113,7 @@ public abstract class Parser<T extends Token<E>, E extends Enum> {
          */
         @SafeVarargs
         public final Counter is(final E... expected) {
-            this.expected.addAll(Arrays.asList(expected));
-            return new Counter(this.expected);
+            return is(Arrays.asList(expected));
         }
 
         /**

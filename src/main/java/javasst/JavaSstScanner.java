@@ -25,6 +25,11 @@ public class JavaSstScanner extends Scanner<JavaSstToken, JavaSstTokenType> {
     private static final Pattern LETTER = Pattern.compile("[a-zA-Z]");
 
     /**
+     * A pattern matching everything but letters and digits.
+     */
+    private static final Pattern NOT_LETTERS_OR_DIGITS = Pattern.compile("[^0-9a-zA-Z]");
+
+    /**
      * If the currently read characters are in a comment.
      */
     private boolean comment = false;
@@ -47,12 +52,12 @@ public class JavaSstScanner extends Scanner<JavaSstToken, JavaSstTokenType> {
         while (current <= ' ') {
             String whitespace = (current + "").replaceAll("\n", "\\\\n");
             whitespace = whitespace.replaceAll("\r", "\\\\r");
-            LOGGER.log(Level.INFO, "Skipping whitespace '" + whitespace + "'.");
+            LOGGER.log(Level.FINEST, "Skipping whitespace '" + whitespace + "'.");
             current = input.next();
         }
         stack += current;
 
-        LOGGER.log(Level.INFO, "Matching character '" + current + "'.");
+        LOGGER.log(Level.FINER, "Matching character '" + current + "'.");
         switch (current) {
             case '{':
                 symbol = CURLY_BRACE_OPEN;
@@ -105,20 +110,20 @@ public class JavaSstScanner extends Scanner<JavaSstToken, JavaSstTokenType> {
             case 'i':
                 if (lookahead("if", IF, null) != null) {
                     symbol = IF;
-                } else if (lookahead("int", INT, null) != null) {
+                } else if (lookahead("int", INT, null, NOT_LETTERS_OR_DIGITS) != null) {
                     symbol = INT;
                 } else {
                     symbol = null;
                 }
                 break;
             case 'p':
-                symbol = lookahead("public", PUBLIC, null);
+                symbol = lookahead("public ", PUBLIC, null);
                 break;
             case 'r':
-                symbol = lookahead("return", RETURN, null);
+                symbol = lookahead("return ", RETURN, null);
                 break;
             case 'v':
-                symbol = lookahead("void", VOID, null);
+                symbol = lookahead("void ", VOID, null);
                 break;
             case 'w':
                 symbol = lookahead("while", WHILE, null);
@@ -144,16 +149,10 @@ public class JavaSstScanner extends Scanner<JavaSstToken, JavaSstTokenType> {
             }
         }
 
-        int positionBias = 0;
         if (symbol == IDENT || symbol == NUMBER) {
             stack = stack.substring(0, stack.length() - 1);
-            positionBias++;
         } else {
             current = input.next();
-        }
-
-        if (stack.length() == 1) {
-            positionBias++;
         }
 
         if (symbol == COMMENT_START) {
@@ -175,9 +174,8 @@ public class JavaSstScanner extends Scanner<JavaSstToken, JavaSstTokenType> {
                     "[" + input.getLine() + ":" + input.getColumn() + "]@" + input.getFile());
         }
 
-        LOGGER.log(Level.INFO, "Found token '" + symbol + "' with stack '" + stack + "'.");
+        LOGGER.log(Level.FINE, "Found token '" + symbol + "' with stack '" + stack + "'.");
 
-        return new JavaSstToken(stack, symbol, input.getLine(), input.getColumn() - (stack.length() - positionBias),
-                input.getFile());
+        return new JavaSstToken(stack, symbol, input.getLine(), input.getColumn() - stack.length(), input.getFile());
     }
 }

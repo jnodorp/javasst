@@ -2,19 +2,19 @@
  * A test class to scan.
  */
 class NiceClassName6 {
-    final int const1 = 123;
-    final int const2 = const1 * const1;
-    int var1;
+    final int intConst1 = 123;
+    final int intConst2 = intConst1 * intConst1;
+    int intVar1;
 
-    public void setVar1(int x) {
-        var1 = x;
+    public int getIntVar1() {
+        return intVar1;
     }
 
-    public int getVar1() {
-        return var1;
+    public void setIntVar1(int x) {
+        intVar1 = x;
     }
 
-    public void incrementVar1() {
-        var1 = getVar1() + 1;
+    public void incrementIntVar1() {
+        intVar1 = getIntVar1() + 1;
     }
 }

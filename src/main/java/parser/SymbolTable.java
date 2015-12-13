@@ -34,15 +34,6 @@ public class SymbolTable {
     }
 
     /**
-     * Set the head.
-     *
-     * @param head The head.
-     */
-    public void setHead(final ParserObject head) {
-        this.head = head;
-    }
-
-    /**
      * Get the enclosing token table.
      *
      * @return The enclosing token table.

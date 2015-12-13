@@ -6,45 +6,26 @@ package parser;
 public class ParserObjectClass extends ParserObject {
 
     /**
-     * The variable definitions.
-     */
-    private final ParserObject variableDefinitions;
-
-    /**
-     * The method declarations.
-     */
-    private final ParserObject methodDeclarations;
-
-    /**
-     * The superclasses.
-     */
-    private final ParserObject superclasses;
-
-    /**
-     * The interfaces.
-     */
-    private final ParserObject interfaces;
-
-    /**
      * The token table.
      */
     private final SymbolTable symbolTable;
 
     /**
+     * The variable definitions.
+     */
+    private ParserObject variableDefinitions;
+
+    /**
+     * The method declarations.
+     */
+    private ParserObject methodDeclarations;
+
+    /**
      * Create a new class.
      *
-     * @param variableDefinitions The variable definitions.
-     * @param methodDeclarations  The method declarations.
-     * @param superclasses        The superclasses.
-     * @param interfaces          The interfaces.
-     * @param symbolTable         The token table.
+     * @param symbolTable The token table.
      */
-    public ParserObjectClass(final ParserObject variableDefinitions, final ParserObject methodDeclarations, final
-    ParserObject superclasses, final ParserObject interfaces, final SymbolTable symbolTable) {
-        this.variableDefinitions = variableDefinitions;
-        this.methodDeclarations = methodDeclarations;
-        this.superclasses = superclasses;
-        this.interfaces = interfaces;
+    public ParserObjectClass(final SymbolTable symbolTable) {
         this.symbolTable = symbolTable;
     }
 
@@ -63,6 +44,15 @@ public class ParserObjectClass extends ParserObject {
     }
 
     /**
+     * Set the variable definitions.
+     *
+     * @param variableDefinitions The variable definitions.
+     */
+    public void setVariableDefinitions(ParserObject variableDefinitions) {
+        this.variableDefinitions = variableDefinitions;
+    }
+
+    /**
      * Get the method declarations.
      *
      * @return The method declarations.
@@ -72,21 +62,12 @@ public class ParserObjectClass extends ParserObject {
     }
 
     /**
-     * Get the superclasses.
+     * Set the method declarations.
      *
-     * @return The superclasses.
+     * @param methodDeclarations The method declarations.
      */
-    public ParserObject getSuperclasses() {
-        return superclasses;
-    }
-
-    /**
-     * Get the interfaces.
-     *
-     * @return The interfaces.
-     */
-    public ParserObject getInterfaces() {
-        return interfaces;
+    public void setMethodDeclarations(ParserObject methodDeclarations) {
+        this.methodDeclarations = methodDeclarations;
     }
 
     /**
