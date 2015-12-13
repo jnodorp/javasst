@@ -3,7 +3,6 @@
  */
 class NiceClassName6 {
     final int intConst1 = 123;
-    final int intConst2 = intConst1 * intConst1;
     int intVar1;
 
     public int getIntVar1() {

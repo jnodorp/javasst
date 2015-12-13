@@ -3,6 +3,7 @@ import javasst.JavaSstScanner;
 import javasst.JavaSstToken;
 import javasst.JavaSstTokenType;
 import org.junit.Test;
+import parser.ObjectClass;
 import parser.Parser;
 import parser.ParserObject;
 import parser.SymbolTable;
@@ -11,40 +12,12 @@ import scanner.Scanner;
 
 import java.io.FileNotFoundException;
 
+import static org.junit.Assert.*;
+
 /**
  * Test class for {@link JavaSstParser}.
  */
 public class JavaSstParserTest {
-
-    /**
-     * Convert {@link ParserObject} to {@link String}.
-     *
-     * @param parserObject The {@link ParserObject}.
-     * @return The {@link String}.
-     */
-    private static String convertParserObjectToString(ParserObject parserObject) {
-        String out = "";
-        while (parserObject.getNext() != null) {
-            out += parserObject.getName() + System.lineSeparator();
-            out += "\t|" + System.lineSeparator();
-            out += "\tv" + System.lineSeparator();
-            parserObject = parserObject.getNext();
-        }
-
-        return out;
-    }
-
-    /**
-     * Convert {@link parser.SymbolTable} to {@link String}.
-     *
-     * @param symbolTable The {@link parser.SymbolTable}.
-     * @return The {@link String}.
-     */
-    private static String convertSymbolTableToString(SymbolTable symbolTable) {
-        String head = "head -> " + convertParserObjectToString(symbolTable.getHead()) + System.lineSeparator();
-        String enclose = "enclose -> " + symbolTable.getEnclose() + System.lineSeparator();
-        return head + enclose;
-    }
 
     @Test
     public void testParse() throws Exception {
@@ -71,7 +44,26 @@ public class JavaSstParserTest {
         JavaSstParser parser = new JavaSstParser(scanner);
 
         parser.parse(st -> {
-            System.out.println(convertSymbolTableToString(st));
+            SymbolTable root = st;
+            while (root.getEnclose().isPresent()) {
+                root = root.getEnclose().get();
+            }
+
+            assertFalse(root.getEnclose().isPresent());
+            assertEquals("A", root.getHead().getName());
+            assertFalse(root.getHead().getIntegerValue().isPresent());
+            // assertTrue(root.getHead().getMethodDeclarations().isPresent()); // FIXME
+            assertFalse(root.getHead().getNext().isPresent());
+            assertEquals(ObjectClass.CLASS, root.getHead().getObjectClass());
+            assertFalse(root.getHead().getParameterList().isPresent());
+            assertFalse(root.getHead().getParserType().isPresent());
+            assertFalse(root.getHead().getResult().isPresent());
+            assertTrue(root.getHead().getSymbolTable().isPresent());
+            // assertTrue(root.getHead().getVariableDefinitions().isPresent()); // FIXME
+
+            ParserObject head = root.getHead().getSymbolTable().get().getHead();
+            assertEquals("b", head.getName());
+            assertEquals(3, head.getIntegerValue().get(), 0);
         });
     }
 }

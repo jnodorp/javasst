@@ -103,40 +103,6 @@ public class JavaSstScannerTest {
         assertEquals(5, symbol.getLine());
         assertEquals(30, symbol.getColumn());
 
-        // final int intConst2 = intConst1 * intConst1;
-        symbol = scanner.next();
-        assertEquals(FINAL, symbol.getType());
-        assertEquals("final", symbol.getIdentifier());
-        assertEquals(FILE, symbol.getFile().toString());
-        assertEquals(6, symbol.getLine());
-        assertEquals(5, symbol.getColumn());
-
-        symbol = scanner.next();
-        assertEquals(INT, symbol.getType());
-        assertEquals("int", symbol.getIdentifier());
-        assertEquals(FILE, symbol.getFile().toString());
-        assertEquals(6, symbol.getLine());
-        assertEquals(11, symbol.getColumn());
-
-        symbol = scanner.next();
-        assertEquals(IDENT, symbol.getType());
-        assertEquals("intConst2", symbol.getIdentifier());
-        assertEquals(FILE, symbol.getFile().toString());
-        assertEquals(6, symbol.getLine());
-        assertEquals(15, symbol.getColumn());
-
-        symbol = scanner.next();
-        assertEquals(EQUALS, symbol.getType());
-        assertEquals("=", symbol.getIdentifier());
-        assertEquals(FILE, symbol.getFile().toString());
-        assertEquals(6, symbol.getLine());
-        assertEquals(25, symbol.getColumn());
-
-        assertEquals(IDENT, scanner.next().getType());
-        assertEquals(TIMES, scanner.next().getType());
-        assertEquals(IDENT, scanner.next().getType());
-        assertEquals(SEMICOLON, scanner.next().getType());
-
         // int var1;
         assertEquals(INT, scanner.next().getType());
         assertEquals(IDENT, scanner.next().getType());

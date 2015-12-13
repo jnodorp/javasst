@@ -158,6 +158,22 @@ public abstract class Parser<T extends Token<E>, E extends Enum> {
         }
 
         /**
+         * Make sure the token is available exactly once. Throw an error otherwise.
+         *
+         * @return The {@link Token}.
+         */
+        public T and() {
+            if (expected.contains(token.getType())) {
+                final T result = token;
+                next();
+                return result;
+            } else {
+                error(expected);
+                return null;
+            }
+        }
+
+        /**
          * If the {@link Specification} matches the current {@link Token} execute the function.
          *
          * @param function The function.

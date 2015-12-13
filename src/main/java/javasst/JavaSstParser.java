@@ -1,6 +1,9 @@
 package javasst;
 
-import parser.*;
+import parser.ObjectClass;
+import parser.Parser;
+import parser.ParserObject;
+import parser.SymbolTable;
 import scanner.Scanner;
 
 import java.util.ArrayList;
@@ -16,9 +19,14 @@ import static javasst.JavaSstTokenType.*;
 public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType> {
 
     /**
-     * The {@link ParserObjectClass}.
+     * The expression.
      */
-    private ParserObjectClass parserObjectClass;
+    private final List<JavaSstToken> expression;
+
+    /**
+     * The {@link ParserObject}.
+     */
+    private ParserObject parserObject;
 
     /**
      * Create a new {@link Parser} based on the given scanner.
@@ -27,7 +35,8 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType> {
      */
     public JavaSstParser(final Scanner<JavaSstToken, JavaSstTokenType> scanner) {
         super(scanner);
-        symbolTable = new SymbolTable(null);
+        this.symbolTable = new SymbolTable(null);
+        this.expression = new ArrayList<>();
     }
 
     /**
@@ -35,18 +44,17 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType> {
      */
     private void clazz() {
         scope(() -> {
-            token().is(JavaSstTokenType.CLASS).once();
-            final String identifier = token.getIdentifier();
-            token().is(IDENT).once();
+            token().is(CLASS).once();
+            final String identifier = token().is(IDENT).and().getIdentifier();
 
             // Create the {@link ParserObject}.
-            parserObjectClass = new ParserObjectClass(symbolTable);
-            parserObjectClass.setName(identifier);
+            parserObject = new ParserObject(ObjectClass.CLASS, symbolTable);
+            parserObject.setName(identifier);
 
             classBody();
         });
 
-        symbolTable.insert(parserObjectClass);
+        symbolTable.insert(parserObject);
     }
 
     /**
@@ -61,30 +69,23 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType> {
     private void constant() {
         token().is(FINAL).once();
         type();
-
-        // Get the constants name.
-        final String identifier = token.getIdentifier();
-
-        token().is(IDENT).once();
+        final String identifier = token().is(IDENT).and().getIdentifier();
         token().is(EQUALS).once();
-        expression();
+        final int integerValue = Integer.parseInt(token().is(NUMBER).and().getIdentifier());
         token().is(SEMICOLON).once();
 
-        ParserObject p = new ParserObjectConstant(0); // FIXME: Evaluate expression.
+        ParserObject p = new ParserObject(ObjectClass.CONSTANT);
         p.setName(identifier);
+        p.setIntegerValue(integerValue);
         symbolTable.insert(p);
     }
 
     private void variableDeclaration() {
         type();
-
-        // Get the variables name.
-        final String identifier = token.getIdentifier();
-
-        token().is(IDENT).once();
+        final String identifier = token().is(IDENT).and().getIdentifier();
         token().is(SEMICOLON).once();
 
-        ParserObject p = new ParserObjectVariable();
+        ParserObject p = new ParserObject(ObjectClass.VARIABLE);
         p.setName(identifier);
         symbolTable.insert(p);
     }
@@ -100,10 +101,9 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType> {
         methodType();
 
         // Get the method name.
-        final String identifier = token.getIdentifier();
+        final String identifier = token().is(IDENT).and().getIdentifier();
 
         scope(() -> {
-            token().is(IDENT).once();
             formalParameters();
             token().is(CURLY_BRACE_OPEN).once();
             token().is(first("local_declaration")).repeat(this::localDeclaration);
@@ -111,7 +111,7 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType> {
             token().is(CURLY_BRACE_CLOSE).once();
         });
 
-        ParserObject p = new ParserObjectProcedure(null, null, null);
+        ParserObject p = new ParserObject(ObjectClass.PROCEDURE);
         p.setName(identifier);
         symbolTable.insert(p);
     }
@@ -229,6 +229,7 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType> {
     }
 
     private void expression() {
+        expression.clear();
         simpleExpression();
         token().is(EQUALS_EQUALS, GREATER_THAN, GREATER_THAN_EQUALS, LESS_THAN, LESS_THAN_EQUALS).optional(() -> {
             next();
@@ -259,6 +260,7 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType> {
             // Could be an internal procedure call.
             token().is(PARENTHESIS_OPEN).optional(this::actualParameters);
         } else if (NUMBER == token.getType()) {
+            expression.add(token);
             next();
         } else if (PARENTHESIS_OPEN == token.getType()) {
             next();

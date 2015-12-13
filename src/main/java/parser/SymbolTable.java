@@ -1,5 +1,7 @@
 package parser;
 
+import java.util.Optional;
+
 /**
  * A token table.
  */
@@ -8,7 +10,7 @@ public class SymbolTable {
     /**
      * The enclosing symbol table.
      */
-    private final SymbolTable enclose;
+    private final Optional<SymbolTable> enclose;
 
     /**
      * The head.
@@ -21,7 +23,7 @@ public class SymbolTable {
      * @param enclose The enclosing token table.
      */
     public SymbolTable(final SymbolTable enclose) {
-        this.enclose = enclose;
+        this.enclose = Optional.ofNullable(enclose);
     }
 
     /**
@@ -34,11 +36,11 @@ public class SymbolTable {
     }
 
     /**
-     * Get the enclosing token table.
+     * Get the enclosing {@link SymbolTable}.
      *
-     * @return The enclosing token table.
+     * @return The enclosing {@link SymbolTable}.
      */
-    public SymbolTable getEnclose() {
+    public Optional<SymbolTable> getEnclose() {
         return enclose;
     }
 
@@ -54,8 +56,8 @@ public class SymbolTable {
             head = object;
         } else {
             ParserObject pointer = head;
-            while (pointer.getNext() != null) {
-                pointer = pointer.getNext();
+            while (pointer.getNext().isPresent()) {
+                pointer = pointer.getNext().get();
             }
 
             pointer.setNext(object);
@@ -70,5 +72,39 @@ public class SymbolTable {
      */
     public ParserObject getObject(final String name/* , final ObjectClass objectClass */) {
         return null; // FIXME
+    }
+
+    /**
+     * Get the owner of this {@link SymbolTable}.
+     *
+     * @return The owner of this {@link SymbolTable} or {@code null} if this {@link SymbolTable} does not have an owner.
+     */
+    private Optional<ParserObject> getOwner() {
+        if (enclose.isPresent()) {
+            ParserObject pointer = enclose.get().getHead();
+
+            if (pointer.getSymbolTable().isPresent()) {
+                if (pointer.getSymbolTable().get().equals(this)) {
+                    return Optional.of(pointer);
+                }
+            }
+
+            while (pointer.getNext().isPresent()) {
+                pointer = pointer.getNext().get();
+
+                if (pointer.getSymbolTable().isPresent()) {
+                    if (pointer.getSymbolTable().get().equals(this)) {
+                        return Optional.of(pointer);
+                    }
+                }
+            }
+        }
+
+        return Optional.empty();
+    }
+
+    @Override
+    public String toString() {
+        return "st1[label=\"{ SymbolTable | <head> head | <enclose> enclose }\"];";
     }
 }
