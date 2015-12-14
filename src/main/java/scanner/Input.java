@@ -54,12 +54,12 @@ public class Input implements Iterator<Character> {
         try {
             next = inputStream.read();
         } catch (IOException e) {
-            LOGGER.log(Level.SEVERE, "Exception while reading underlying input stream.", e);
+            LOGGER.log(Level.FINE, "Exception while reading underlying input stream.", e);
         } finally {
             try {
                 inputStream.reset();
             } catch (IOException e) {
-                LOGGER.log(Level.SEVERE, "Exception while resetting underlying input stream.", e);
+                LOGGER.log(Level.FINE, "Exception while resetting underlying input stream.", e);
             }
         }
 
@@ -76,7 +76,7 @@ public class Input implements Iterator<Character> {
         }
 
         if (c == -1) {
-            LOGGER.log(Level.INFO, "Closing underlying input stream due to end of input.");
+            LOGGER.log(Level.FINE, "Closing underlying input stream due to end of input.");
             try {
                 inputStream.close();
             } catch (IOException e) {

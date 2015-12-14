@@ -1,5 +1,7 @@
 package parser;
 
+import ast.Ast;
+import ast.Node;
 import scanner.Scanner;
 import scanner.Token;
 
@@ -13,8 +15,10 @@ import java.util.logging.Logger;
  *
  * @param <T> The {@link Token} object.
  * @param <E> The {@link Token}s type.
+ * @param <O> The {@link SymbolTable}s members type.
+ * @param <N> The {@link Node}s type.
  */
-public abstract class Parser<T extends Token<E>, E extends Enum> {
+public abstract class Parser<T extends Token<E>, E extends Enum, O extends ParserObject, N extends Node<?, ?, ?>> {
 
     /**
      * The logger.
@@ -34,7 +38,7 @@ public abstract class Parser<T extends Token<E>, E extends Enum> {
     /**
      * The symbol table.
      */
-    protected SymbolTable symbolTable;
+    protected SymbolTable<O> symbolTable;
 
     /**
      * Create a new parser.
@@ -50,7 +54,9 @@ public abstract class Parser<T extends Token<E>, E extends Enum> {
      */
     protected void next() {
         this.token = scanner.next();
-        LOGGER.fine(this.token.toString());
+        if (token != null) {
+            LOGGER.fine(this.token.toString());
+        }
     }
 
     /**
@@ -59,8 +65,8 @@ public abstract class Parser<T extends Token<E>, E extends Enum> {
      * @param runnable The code to run.
      */
     protected void scope(Runnable runnable) {
-        final SymbolTable oldSymbolTable = symbolTable;
-        symbolTable = new SymbolTable(oldSymbolTable);
+        final SymbolTable<O> oldSymbolTable = symbolTable;
+        symbolTable = new SymbolTable<>(oldSymbolTable);
         runnable.run();
         symbolTable = oldSymbolTable;
     }
@@ -82,7 +88,7 @@ public abstract class Parser<T extends Token<E>, E extends Enum> {
     /**
      * Start the parsing process (by calling the start node method).
      */
-    public abstract void parse();
+    public abstract Ast<N> parse();
 
     /**
      * Allow verifications on the current token.

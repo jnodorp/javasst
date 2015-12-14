@@ -1,8 +1,8 @@
-package parser;
+package javasst.parser;
 
 /**
  * Possible object classes.
  */
-public enum ObjectClass {
+public enum JavaSstParserObjectClass {
     CONSTANT, PROCEDURE, CLASS, VARIABLE
 }

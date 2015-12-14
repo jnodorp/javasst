@@ -1,6 +1,6 @@
-import javasst.JavaSstScanner;
-import javasst.JavaSstToken;
-import javasst.JavaSstTokenType;
+import javasst.scanner.JavaSstScanner;
+import javasst.scanner.JavaSstToken;
+import javasst.scanner.JavaSstTokenType;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -9,7 +9,7 @@ import scanner.Scanner;
 
 import java.io.File;
 
-import static javasst.JavaSstTokenType.*;
+import static javasst.scanner.JavaSstTokenType.*;
 import static org.junit.Assert.assertEquals;
 
 /**

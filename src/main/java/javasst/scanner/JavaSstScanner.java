@@ -1,4 +1,4 @@
-package javasst;
+package javasst.scanner;
 
 import scanner.Input;
 import scanner.Scanner;
@@ -7,7 +7,7 @@ import java.util.InputMismatchException;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
 
-import static javasst.JavaSstTokenType.*;
+import static javasst.scanner.JavaSstTokenType.*;
 
 /**
  * This class processes input provided by an {@link Input} instance.
@@ -152,7 +152,11 @@ public class JavaSstScanner extends Scanner<JavaSstToken, JavaSstTokenType> {
         if (symbol == IDENT || symbol == NUMBER) {
             stack = stack.substring(0, stack.length() - 1);
         } else {
-            current = input.next();
+            if (!input.hasNext()) {
+                current = (char) -1;
+            } else {
+                current = input.next();
+            }
         }
 
         if (symbol == COMMENT_START) {

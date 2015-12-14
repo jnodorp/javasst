@@ -1,4 +1,4 @@
-package javasst;
+package javasst.scanner;
 
 /**
  * Enumeration of possible {@link scanner.Token} types.

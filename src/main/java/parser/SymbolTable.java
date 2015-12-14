@@ -1,38 +1,34 @@
 package parser;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Optional;
 
 /**
  * A token table.
+ *
+ * @param <O> The objects contained within this symbol table.
  */
-public class SymbolTable {
+public class SymbolTable<O extends parser.ParserObject> {
 
     /**
      * The enclosing symbol table.
      */
-    private final Optional<SymbolTable> enclose;
+    private final Optional<SymbolTable<O>> enclose;
 
     /**
-     * The head.
+     * The {@link ParserObject}s.
      */
-    private ParserObject head;
+    private final List<O> objects;
 
     /**
      * Create a new symbol table.
      *
      * @param enclose The enclosing token table.
      */
-    public SymbolTable(final SymbolTable enclose) {
+    public SymbolTable(final SymbolTable<O> enclose) {
         this.enclose = Optional.ofNullable(enclose);
-    }
-
-    /**
-     * Get the head.
-     *
-     * @return The head.
-     */
-    public ParserObject getHead() {
-        return head;
+        this.objects = new LinkedList<>();
     }
 
     /**
@@ -40,71 +36,28 @@ public class SymbolTable {
      *
      * @return The enclosing {@link SymbolTable}.
      */
-    public Optional<SymbolTable> getEnclose() {
+    public Optional<SymbolTable<O>> getEnclose() {
         return enclose;
     }
 
     /**
-     * Insert a {@link ParserObject}.
-     *
-     * @param object The {@link ParserObject}.
-     */
-    public void insert(ParserObject object) {
-        object.setNext(null);
-
-        if (head == null) {
-            head = object;
-        } else {
-            ParserObject pointer = head;
-            while (pointer.getNext().isPresent()) {
-                pointer = pointer.getNext().get();
-            }
-
-            pointer.setNext(object);
-        }
-    }
-
-    /**
      * Get a {@link ParserObject}.
+     * <p>
+     * TODO: Allow e.g. methods and variables with the same name.
      *
      * @param name The name.
      * @return The {@link ParserObject}.
      */
-    public ParserObject getObject(final String name/* , final ObjectClass objectClass */) {
-        return null; // FIXME
+    public Optional<O> get(final String name) {
+        return objects.stream().filter(parserObject -> name.equals(parserObject.getIdentifier())).findFirst();
     }
 
     /**
-     * Get the owner of this {@link SymbolTable}.
+     * Add a {@link ParserObject}.
      *
-     * @return The owner of this {@link SymbolTable} or {@code null} if this {@link SymbolTable} does not have an owner.
+     * @param object The {@link ParserObject}.
      */
-    private Optional<ParserObject> getOwner() {
-        if (enclose.isPresent()) {
-            ParserObject pointer = enclose.get().getHead();
-
-            if (pointer.getSymbolTable().isPresent()) {
-                if (pointer.getSymbolTable().get().equals(this)) {
-                    return Optional.of(pointer);
-                }
-            }
-
-            while (pointer.getNext().isPresent()) {
-                pointer = pointer.getNext().get();
-
-                if (pointer.getSymbolTable().isPresent()) {
-                    if (pointer.getSymbolTable().get().equals(this)) {
-                        return Optional.of(pointer);
-                    }
-                }
-            }
-        }
-
-        return Optional.empty();
-    }
-
-    @Override
-    public String toString() {
-        return "st1[label=\"{ SymbolTable | <head> head | <enclose> enclose }\"];";
+    public void add(final O object) {
+        objects.add(object);
     }
 }

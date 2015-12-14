@@ -1,11 +1,14 @@
-import javasst.JavaSstParser;
-import javasst.JavaSstScanner;
-import javasst.JavaSstToken;
-import javasst.JavaSstTokenType;
+import javasst.ast.JavaSstNode;
+import javasst.parser.JavaSstParser;
+import javasst.parser.JavaSstParserObject;
+import javasst.parser.JavaSstParserObjectClass;
+import javasst.parser.JavaSstParserObjectType;
+import javasst.scanner.JavaSstScanner;
+import javasst.scanner.JavaSstToken;
+import javasst.scanner.JavaSstTokenType;
 import org.junit.Test;
-import parser.ObjectClass;
+import org.mockito.internal.util.reflection.Whitebox;
 import parser.Parser;
-import parser.ParserObject;
 import parser.SymbolTable;
 import scanner.Input;
 import scanner.Scanner;
@@ -23,7 +26,7 @@ public class JavaSstParserTest {
     public void testParse() throws Exception {
         final Input input = new Input("src/test/resources/test.sst");
         final Scanner<JavaSstToken, JavaSstTokenType> scanner = new JavaSstScanner(input);
-        Parser parser = new JavaSstParser(scanner);
+        Parser<JavaSstToken, JavaSstTokenType, JavaSstParserObject, JavaSstNode> parser = new JavaSstParser(scanner);
 
         parser.parse();
     }
@@ -43,27 +46,36 @@ public class JavaSstParserTest {
         final Scanner<JavaSstToken, JavaSstTokenType> scanner = new JavaSstScanner(input);
         JavaSstParser parser = new JavaSstParser(scanner);
 
-        parser.parse(st -> {
-            SymbolTable root = st;
-            while (root.getEnclose().isPresent()) {
-                root = root.getEnclose().get();
-            }
+        parser.parse();
 
-            assertFalse(root.getEnclose().isPresent());
-            assertEquals("A", root.getHead().getName());
-            assertFalse(root.getHead().getIntegerValue().isPresent());
-            // assertTrue(root.getHead().getMethodDeclarations().isPresent()); // FIXME
-            assertFalse(root.getHead().getNext().isPresent());
-            assertEquals(ObjectClass.CLASS, root.getHead().getObjectClass());
-            assertFalse(root.getHead().getParameterList().isPresent());
-            assertFalse(root.getHead().getParserType().isPresent());
-            assertFalse(root.getHead().getResult().isPresent());
-            assertTrue(root.getHead().getSymbolTable().isPresent());
-            // assertTrue(root.getHead().getVariableDefinitions().isPresent()); // FIXME
+        @SuppressWarnings("unchecked")
+        SymbolTable<JavaSstParserObject> root = (SymbolTable) Whitebox.getInternalState(parser, "symbolTable");
+        while (root.getEnclose().isPresent()) {
+            root = root.getEnclose().get();
+        }
 
-            ParserObject head = root.getHead().getSymbolTable().get().getHead();
-            assertEquals("b", head.getName());
-            assertEquals(3, head.getIntegerValue().get(), 0);
-        });
+        assertFalse(root.getEnclose().isPresent());
+        assertTrue(root.get("A").isPresent());
+
+        JavaSstParserObject a = root.get("A").get();
+        // assertTrue(a.getMethodDeclarations().isPresent()); // FIXME
+        assertEquals(JavaSstParserObjectClass.CLASS, a.getObjectClass());
+        // assertEquals(JavaSstParserObjectType.INT, root.getHead().getParserType().get().getKind()); // FIXME
+        assertNotNull(a.getSymbolTable());
+        // assertTrue(root.getHead().getVariableDefinitions().isPresent()); // FIXME
+
+        JavaSstParserObject b = a.getSymbolTable().get("b").get();
+        assertEquals("b", b.getIdentifier());
+        assertEquals(3, b.getIntValue());
+
+        JavaSstParserObject f = a.getSymbolTable().get("f").get();
+        assertEquals("f", f.getIdentifier());
+        // assertEquals(3, f.getParameterList(), 0); // FIXME
+        assertNotNull(f.getSymbolTable()); // FIXME
+
+        JavaSstParserObject x = f.getSymbolTable().get("x").get();
+        assertEquals("x", x.getIdentifier());
+        assertEquals(JavaSstParserObjectType.INTEGER, x.getParserType()); // FIXME
+        assertNotNull(f.getSymbolTable());
     }
 }

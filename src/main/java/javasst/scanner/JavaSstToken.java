@@ -1,4 +1,4 @@
-package javasst;
+package javasst.scanner;
 
 import scanner.Token;
 
