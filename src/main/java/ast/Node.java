@@ -3,6 +3,7 @@ package ast;
 import parser.ParserObject;
 
 import java.util.Optional;
+import java.util.StringJoiner;
 
 /**
  * A {@link Node} of the abstract syntax tree (AST).
@@ -18,17 +19,17 @@ public abstract class Node<C extends Enum, S extends Enum, T extends Enum> {
     /**
      * The left {@link Node}.
      */
-    private Optional<Node<C, S, T>> left;
+    private Optional<? extends Node<C, S, T>> left;
 
     /**
      * The right {@link Node}.
      */
-    private Optional<Node<C, S, T>> right;
+    private Optional<? extends Node<C, S, T>> right;
 
     /**
      * The link {@link Node}.
      */
-    private Optional<Node<C, S, T>> link;
+    private Optional<? extends Node<C, S, T>> link;
 
     /**
      * The type.
@@ -51,6 +52,11 @@ public abstract class Node<C extends Enum, S extends Enum, T extends Enum> {
     private Optional<ParserObject> object;
 
     /**
+     * The constant.
+     */
+    private Optional<Number> constant;
+
+    /**
      * Create a new {@link Node}.
      */
     public Node() {
@@ -58,6 +64,7 @@ public abstract class Node<C extends Enum, S extends Enum, T extends Enum> {
         this.right = Optional.empty();
         this.link = Optional.empty();
         this.object = Optional.empty();
+        this.constant = Optional.empty();
     }
 
     /**
@@ -65,7 +72,7 @@ public abstract class Node<C extends Enum, S extends Enum, T extends Enum> {
      *
      * @return The left {@link Node}.
      */
-    public Optional<Node<C, S, T>> getLeft() {
+    public Optional<? extends Node<C, S, T>> getLeft() {
         return left;
     }
 
@@ -83,7 +90,7 @@ public abstract class Node<C extends Enum, S extends Enum, T extends Enum> {
      *
      * @return The right {@link Node}.
      */
-    public Optional<Node<C, S, T>> getRight() {
+    public Optional<? extends Node<C, S, T>> getRight() {
         return right;
     }
 
@@ -101,7 +108,7 @@ public abstract class Node<C extends Enum, S extends Enum, T extends Enum> {
      *
      * @return The link {@link Node}.
      */
-    public Optional<Node<C, S, T>> getLink() {
+    public Optional<? extends Node<C, S, T>> getLink() {
         return link;
     }
 
@@ -182,7 +189,42 @@ public abstract class Node<C extends Enum, S extends Enum, T extends Enum> {
      *
      * @param object The object.
      */
-    public void setObject(Optional<ParserObject> object) {
-        this.object = object;
+    public void setObject(ParserObject object) {
+        this.object = Optional.of(object);
+    }
+
+    /**
+     * Get the constant.
+     *
+     * @return The constant.
+     */
+    public Optional<Number> getConstant() {
+        return constant;
+    }
+
+    /**
+     * Set the constant.
+     *
+     * @param constant The constant.
+     */
+    public void setConstant(Number constant) {
+        this.constant = Optional.of(constant);
+    }
+
+    /**
+     * Create the dot representation for this Node.
+     *
+     * @return The dot representation of this Node.
+     */
+    public String toDot(final String name) {
+        final String o = object.isPresent() ? object.get().getIdentifier() : "-";
+        final String c = constant.isPresent() ? constant.get().toString() : "-";
+
+        return "\"" + name + "\" [shape=record, label=\"{" + "<class> " + clazz + " | " +
+                "<subclass> " + subclass + " | " +
+                "<type> " + type + " | " +
+                "<object> " + o + " | " +
+                "<constant> " + c +
+                "}\"];";
     }
 }

@@ -79,10 +79,10 @@ public class JavaSstToken implements Token<JavaSstTokenType> {
     @Override
     public String toString() {
         return "{" + System.lineSeparator() +
-                "\t\"type\": \"" + type + "\"" + System.lineSeparator() +
-                "\t\"identifier\": \"" + identifier + "\"" + System.lineSeparator() +
-                "\t\"line\": \"" + line + "\"" + System.lineSeparator() +
-                "\t\"column\": \"" + column + "\"" + System.lineSeparator() +
+                "\t\"type\": \"" + type + "\"" + "," + System.lineSeparator() +
+                "\t\"identifier\": \"" + identifier + "\"" + "," + System.lineSeparator() +
+                "\t\"line\": " + line + "," + System.lineSeparator() +
+                "\t\"column\": " + column + "," + System.lineSeparator() +
                 "\t\"file\": \"" + file + "\"" + System.lineSeparator() +
                 "}";
     }

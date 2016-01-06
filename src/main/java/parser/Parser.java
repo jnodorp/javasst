@@ -28,7 +28,12 @@ public abstract class Parser<T extends Token<E>, E extends Enum, O extends Parse
     /**
      * The scanner.
      */
-    protected Scanner<T, E> scanner;
+    protected final Scanner<T, E> scanner;
+
+    /**
+     * The AST.
+     */
+    protected final Ast<N> ast;
 
     /**
      * The current token.
@@ -47,6 +52,7 @@ public abstract class Parser<T extends Token<E>, E extends Enum, O extends Parse
      */
     public Parser(final Scanner<T, E> scanner) {
         this.scanner = scanner;
+        this.ast = new Ast<>();
     }
 
     /**
@@ -73,6 +79,8 @@ public abstract class Parser<T extends Token<E>, E extends Enum, O extends Parse
 
     /**
      * Switch to the error state.
+     *
+     * @param expected A list of expected tokens.
      */
     protected void error(final List<E> expected) {
         String message = "Unexpected token " + System.lineSeparator() + token + System.lineSeparator();
@@ -87,6 +95,8 @@ public abstract class Parser<T extends Token<E>, E extends Enum, O extends Parse
 
     /**
      * Start the parsing process (by calling the start node method).
+     *
+     * @return The generated {@link Ast}.
      */
     public abstract Ast<N> parse();
 
