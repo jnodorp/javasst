@@ -30,11 +30,6 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType, JavaSs
     private JavaSstParserObject parserObject;
 
     /**
-     * The current {@link JavaSstNode}.
-     */
-    private JavaSstNode node;
-
-    /**
      * Create a new {@link Parser} based on the given scanner.
      *
      * @param scanner The scanner.
@@ -50,9 +45,10 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType, JavaSs
      * @return The class node.
      */
     private JavaSstNode clazz() {
-        node = new JavaSstNode();
-        node.setClazz(JavaSstNodeClass.CLASS);
+        JavaSstNode n = new JavaSstNode();
+        n.setClazz(JavaSstNodeClass.CLASS);
 
+        ast.setRoot(n);
         scope(() -> {
             token().is(CLASS).once();
             final String identifier = token().is(IDENT).and().getIdentifier();
@@ -67,9 +63,9 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType, JavaSs
         symbolTable.add(parserObject);
 
         // Finish AST.
-        node.setObject(parserObject);
+        n.setObject(parserObject);
 
-        return node;
+        return n;
     }
 
     /**
@@ -111,15 +107,16 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType, JavaSs
         n.setObject(p);
         n.setType(JavaSstNodeType.INTEGER);
 
-        if (node.getLeft().isPresent()) {
-            Node<JavaSstNodeClass, JavaSstNodeSubclass, JavaSstNodeType> parent = node.getLeft().get();
+        // Add node to the left of root.
+        if (ast.getRoot().getLeft().isPresent()) {
+            Node<JavaSstNodeClass, JavaSstNodeSubclass, JavaSstNodeType> parent = ast.getRoot().getLeft().get();
             while (parent.getLink().isPresent()) {
                 parent = parent.getLink().get();
             }
 
             parent.setLink(n);
         } else {
-            node.setLeft(n);
+            ast.getRoot().setLeft(n);
         }
     }
 
@@ -127,10 +124,8 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType, JavaSs
      * Variable declaration: {@link #type()} {@link JavaSstTokenType#IDENT} {@code ;}.
      * <p>
      * TODO: Add handling for non integer variable declarations.
-     *
-     * @return The variable declaration node.
      */
-    private JavaSstNode variableDeclaration() {
+    private void variableDeclaration() {
         // Verify syntax.
         type();
         final String identifier = token().is(IDENT).and().getIdentifier();
@@ -142,12 +137,22 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType, JavaSs
         symbolTable.add(p);
 
         // Build AST.
-        JavaSstNode node = new JavaSstNode();
-        node.setClazz(JavaSstNodeClass.VARIABLE_DECLARATION);
-        node.setObject(p);
-        node.setType(JavaSstNodeType.INTEGER);
+        JavaSstNode n = new JavaSstNode();
+        n.setClazz(JavaSstNodeClass.VARIABLE_DECLARATION);
+        n.setObject(p);
+        n.setType(JavaSstNodeType.INTEGER);
 
-        return node;
+        // Add node to the right of root.
+        if (ast.getRoot().getRight().isPresent()) {
+            Node<JavaSstNodeClass, JavaSstNodeSubclass, JavaSstNodeType> parent = ast.getRoot().getLeft().get();
+            while (parent.getLink().isPresent()) {
+                parent = parent.getLink().get();
+            }
+
+            parent.setLink(n);
+        } else {
+            ast.getRoot().setRight(n);
+        }
     }
 
     /**
@@ -155,13 +160,11 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType, JavaSs
      * <p>
      * TODO: Finish documentation.
      * TODO: Add handling for non integer method declarations.
-     *
-     * @return The method declaration node.
      */
-    private JavaSstNode methodDeclaration() {
+    private void methodDeclaration() {
         // Verify syntax.
         token().is(PUBLIC).once();
-        token().is(VOID, INT).once();
+        final String type = token().is(VOID, INT).and().getIdentifier();
 
         final String identifier = token().is(IDENT).and().getIdentifier();
         scope(() -> {
@@ -178,31 +181,51 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType, JavaSs
         symbolTable.add(p);
 
         // Build AST.
-        JavaSstNode node = new JavaSstNode();
-        node.setClazz(JavaSstNodeClass.METHOD);
-        node.setObject(p);
-        node.setType(JavaSstNodeType.INTEGER);
+        JavaSstNode n = new JavaSstNode();
+        n.setClazz(JavaSstNodeClass.METHOD);
+        n.setObject(p);
 
-        return node;
+        switch (type) {
+            case "void":
+                n.setType(JavaSstNodeType.VOID);
+                break;
+            case "integer":
+                n.setType(JavaSstNodeType.INTEGER);
+                break;
+            default:
+                throw new RuntimeException("TODO: Add better exception."); // TODO
+        }
+
+        // Add node to the right of root.
+        if (ast.getRoot().getRight().isPresent()) {
+            Node<JavaSstNodeClass, JavaSstNodeSubclass, JavaSstNodeType> parent = ast.getRoot().getLeft().get();
+            while (parent.getLink().isPresent()) {
+                parent = parent.getLink().get();
+            }
+
+            parent.setLink(n);
+        } else {
+            ast.getRoot().setRight(n);
+        }
     }
 
+    /**
+     * TODO: Fix {@link SymbolTable} and {@link Ast}.
+     */
     private void formalParameters() {
         token().is(PARENTHESIS_OPEN).once();
         token().is(first("fp_section")).optional(() -> {
-            fpSection();
+            type();
+            token().is(IDENT).once();
 
             token().is(COMMA).repeat(() -> {
                 next();
-                fpSection();
+                type();
+                token().is(IDENT).once();
             });
         });
 
         token().is(PARENTHESIS_CLOSE).once();
-    }
-
-    private void fpSection() {
-        type();
-        token().is(IDENT).once();
     }
 
     private void statementSequence() {
