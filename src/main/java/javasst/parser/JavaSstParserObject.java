@@ -1,6 +1,5 @@
 package javasst.parser;
 
-import parser.ParserObject;
 import parser.SymbolTable;
 
 import java.util.Arrays;
@@ -120,7 +119,7 @@ public class JavaSstParserObject implements parser.ParserObject {
      *
      * @return The method declarations.
      */
-    public List<ParserObject> getMethodDeclarations() {
+    public List<JavaSstParserObject> getMethodDeclarations() {
         if (objectClass == JavaSstParserObjectClass.CLASS) {
             return null; // FIXME
         } else {
@@ -133,7 +132,7 @@ public class JavaSstParserObject implements parser.ParserObject {
      *
      * @return The variable definitions.
      */
-    public Optional<ParserObject> getVariableDefinitions() {
+    public Optional<JavaSstParserObject> getVariableDefinitions() {
         if (objectClass == JavaSstParserObjectClass.CLASS) {
             return Optional.empty(); // FIXME
         } else {
@@ -172,7 +171,7 @@ public class JavaSstParserObject implements parser.ParserObject {
      *
      * @return The parameter list.
      */
-    public ParserObject getParameterList() {
+    public JavaSstParserObject getParameterList() {
         if (objectClass == JavaSstParserObjectClass.PROCEDURE) {
             return null; // FIXME
         } else {
@@ -185,9 +184,9 @@ public class JavaSstParserObject implements parser.ParserObject {
      *
      * @param parameter The parameter.
      */
-    public void addParameter(final ParserObject parameter) {
+    public void addParameter(final JavaSstParserObject parameter) {
         if (objectClass == JavaSstParserObjectClass.PROCEDURE) {
-
+            // TODO: Do your thing.
         } else {
             throw new ObjectClassException(JavaSstParserObjectClass.PROCEDURE);
         }

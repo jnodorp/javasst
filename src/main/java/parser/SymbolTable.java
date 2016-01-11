@@ -49,7 +49,14 @@ public class SymbolTable<O extends parser.ParserObject> {
      * @return The {@link ParserObject}.
      */
     public Optional<O> get(final String name) {
-        return objects.stream().filter(parserObject -> name.equals(parserObject.getIdentifier())).findFirst();
+        Optional<O> result = objects.stream().filter(parserObject -> name.equals(parserObject.getIdentifier())).findAny();
+        if (result.isPresent()) {
+            return result;
+        } else if (getEnclose().isPresent()) {
+            return getEnclose().get().get(name);
+        } else {
+            return Optional.empty();
+        }
     }
 
     /**

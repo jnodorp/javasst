@@ -117,13 +117,13 @@ public class JavaSstScanner extends Scanner<JavaSstToken, JavaSstTokenType> {
                 }
                 break;
             case 'p':
-                symbol = lookahead("public ", PUBLIC, null);
+                symbol = lookahead("public", PUBLIC, null);
                 break;
             case 'r':
-                symbol = lookahead("return ", RETURN, null);
+                symbol = lookahead("return", RETURN, null);
                 break;
             case 'v':
-                symbol = lookahead("void ", VOID, null);
+                symbol = lookahead("void", VOID, null);
                 break;
             case 'w':
                 symbol = lookahead("while", WHILE, null);
