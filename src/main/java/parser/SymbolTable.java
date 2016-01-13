@@ -41,19 +41,28 @@ public class SymbolTable<O extends parser.ParserObject> {
     }
 
     /**
-     * Get a {@link ParserObject}.
+     * Get all {@link ParserObject}s of THIS symbol table.
+     *
+     * @return All {@link ParserObject}s of THIS symbol table.
+     */
+    public List<O> getObjects() {
+        return objects;
+    }
+
+    /**
+     * Get a {@link ParserObject} from this or any enclosing symbol table.
      * <p>
      * TODO: Allow e.g. methods and variables with the same name.
      *
-     * @param name The name.
-     * @return The {@link ParserObject}.
+     * @param name The objects name.
+     * @return The {@link ParserObject} from this or any enclosing symbol table.
      */
-    public Optional<O> get(final String name) {
+    public Optional<O> object(final String name) {
         Optional<O> result = objects.stream().filter(parserObject -> name.equals(parserObject.getIdentifier())).findAny();
         if (result.isPresent()) {
             return result;
         } else if (getEnclose().isPresent()) {
-            return getEnclose().get().get(name);
+            return getEnclose().get().object(name);
         } else {
             return Optional.empty();
         }

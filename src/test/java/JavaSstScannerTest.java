@@ -48,7 +48,7 @@ public class JavaSstScannerTest {
 
         symbol = scanner.next();
         assertEquals(IDENT, symbol.getType());
-        assertEquals("NiceClassName6", symbol.getIdentifier());
+        assertEquals("className6", symbol.getIdentifier());
         assertEquals(FILE, symbol.getFile().toString());
         assertEquals(4, symbol.getLine());
         assertEquals(7, symbol.getColumn());
@@ -58,7 +58,7 @@ public class JavaSstScannerTest {
         assertEquals("{", symbol.getIdentifier());
         assertEquals(FILE, symbol.getFile().toString());
         assertEquals(4, symbol.getLine());
-        assertEquals(22, symbol.getColumn());
+        assertEquals(18, symbol.getColumn());
 
         // final int const1 = 123;
         symbol = scanner.next();
@@ -151,20 +151,23 @@ public class JavaSstScannerTest {
         assertEquals(PARENTHESIS_CLOSE, scanner.next().getType());
         assertEquals(CURLY_BRACE_OPEN, scanner.next().getType());
 
-        // var1 = getVar1() + 1;
+        // setIntVar1(add(getIntVar1(), 1));
         assertEquals(IDENT, scanner.next().getType());
-        assertEquals(EQUALS, scanner.next().getType());
+        assertEquals(PARENTHESIS_OPEN, scanner.next().getType());
+        assertEquals(IDENT, scanner.next().getType());
+        assertEquals(PARENTHESIS_OPEN, scanner.next().getType());
         assertEquals(IDENT, scanner.next().getType());
         assertEquals(PARENTHESIS_OPEN, scanner.next().getType());
         assertEquals(PARENTHESIS_CLOSE, scanner.next().getType());
-        assertEquals(PLUS, scanner.next().getType());
+        assertEquals(COMMA, scanner.next().getType());
         assertEquals(NUMBER, scanner.next().getType());
+        assertEquals(PARENTHESIS_CLOSE, scanner.next().getType());
+        assertEquals(PARENTHESIS_CLOSE, scanner.next().getType());
         assertEquals(SEMICOLON, scanner.next().getType());
 
         // }
         assertEquals(CURLY_BRACE_CLOSE, scanner.next().getType());
 
-        // }
-        assertEquals(CURLY_BRACE_CLOSE, scanner.next().getType());
+        // TODO: Finish test.
     }
 }

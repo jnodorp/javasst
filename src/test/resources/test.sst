@@ -1,7 +1,7 @@
 /**
  * A test class to scan.
  */
-class NiceClassName6 {
+class className6 {
     final int intConst1 = 123;
     int intVar1;
 

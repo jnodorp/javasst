@@ -5,6 +5,7 @@ import parser.SymbolTable;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * {@link JavaSstParserObject}s (e.g. variables, constant, etc.).
@@ -121,7 +122,7 @@ public class JavaSstParserObject implements parser.ParserObject {
      */
     public List<JavaSstParserObject> getMethodDeclarations() {
         if (objectClass == JavaSstParserObjectClass.CLASS) {
-            return null; // FIXME
+            return symbolTable.getObjects().stream().filter(o -> JavaSstParserObjectClass.PROCEDURE == o.getObjectClass()).collect(Collectors.toList());
         } else {
             throw new ObjectClassException(JavaSstParserObjectClass.CLASS);
         }

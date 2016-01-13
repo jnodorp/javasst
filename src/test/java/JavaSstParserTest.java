@@ -55,26 +55,27 @@ public class JavaSstParserTest {
         }
 
         assertFalse(root.getEnclose().isPresent());
-        assertTrue(root.get("A").isPresent());
+        assertTrue(root.object("A").isPresent());
 
-        JavaSstParserObject a = root.get("A").get();
-        // assertEquals(2, a.getMethodDeclarations().size()); // FIXME
+        JavaSstParserObject a = root.object("A").get();
+        assertEquals(1, a.getMethodDeclarations().size());
+        assertEquals("f", a.getMethodDeclarations().get(0).getIdentifier());
         assertEquals(JavaSstParserObjectClass.CLASS, a.getObjectClass());
         assertNotNull(a.getSymbolTable());
-        // assertTrue(root.getHead().getVariableDefinitions().isPresent()); // FIXME
+        assertTrue(a.getVariableDefinitions().isPresent()); // FIXME
 
-        JavaSstParserObject b = a.getSymbolTable().get("b").get();
+        JavaSstParserObject b = a.getSymbolTable().object("b").get();
         assertEquals("b", b.getIdentifier());
         assertEquals(3, b.getIntValue());
         assertEquals(JavaSstParserObjectClass.CONSTANT, b.getObjectClass());
         assertEquals(JavaSstParserObjectType.INTEGER, b.getParserType());
 
-        JavaSstParserObject f = a.getSymbolTable().get("f").get();
+        JavaSstParserObject f = a.getSymbolTable().object("f").get();
         assertEquals("f", f.getIdentifier());
         // assertEquals(3, f.getParameterList(), 0); // FIXME
         assertNotNull(f.getSymbolTable());
 
-        JavaSstParserObject x = f.getSymbolTable().get("x").get();
+        JavaSstParserObject x = f.getSymbolTable().object("x").get();
         assertEquals("x", x.getIdentifier());
         assertEquals(JavaSstParserObjectType.INTEGER, x.getParserType());
         assertNotNull(f.getSymbolTable());

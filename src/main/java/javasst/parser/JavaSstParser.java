@@ -14,8 +14,6 @@ import parser.Parser;
 import parser.SymbolTable;
 import scanner.Scanner;
 
-import javax.lang.model.type.TypeMirror;
-import javax.lang.model.type.UnknownTypeException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedList;
@@ -360,7 +358,7 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType, JavaSs
                 actualParameters();
             } else {
                 node.setClazz(JavaSstNodeClass.VARIABLE);
-                node.setObject(symbolTable.get(identifier).orElseThrow(() -> new UnknownSymbolException(t)));
+                node.setObject(symbolTable.object(identifier).orElseThrow(() -> new UnknownSymbolException(t)));
             }
         } else if (NUMBER == token.getType()) {
             node.setClazz(JavaSstNodeClass.NUMBER);
