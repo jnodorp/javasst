@@ -3,7 +3,6 @@ package ast;
 import parser.ParserObject;
 
 import java.util.Optional;
-import java.util.StringJoiner;
 
 /**
  * A {@link Node} of the abstract syntax tree (AST).

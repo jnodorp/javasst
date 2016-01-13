@@ -1,7 +1,5 @@
 package parser;
 
-import exceptions.SymbolAlreadyExists;
-
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -81,6 +79,22 @@ public final class SymbolTable<O extends parser.ParserObject> {
             throw new SymbolAlreadyExists(existing.get(), object);
         } else {
             objects.add(object);
+        }
+    }
+
+    /**
+     * Exception thrown when double defining symbols.
+     */
+    public static final class SymbolAlreadyExists extends Exception {
+
+        /**
+         * Create a new exception.
+         *
+         * @param existing The {@link ParserObject} representing the already defined symbol.
+         * @param added    The {@link ParserObject} representing the newly defined symbol.
+         */
+        public SymbolAlreadyExists(final ParserObject existing, final ParserObject added) {
+            super("Defining " + added + " but already defined as " + existing);
         }
     }
 }

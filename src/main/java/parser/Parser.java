@@ -26,11 +26,6 @@ public abstract class Parser<T extends Token<E>, E extends Enum, O extends Parse
     private static final Logger LOGGER = Logger.getLogger(Parser.class.getName());
 
     /**
-     * The scanner.
-     */
-    protected final Scanner<T, E> scanner;
-
-    /**
      * The AST.
      */
     protected final Ast<N> ast;
@@ -44,6 +39,11 @@ public abstract class Parser<T extends Token<E>, E extends Enum, O extends Parse
      * The symbol table.
      */
     protected SymbolTable<O> symbolTable;
+
+    /**
+     * The scanner.
+     */
+    private final Scanner<T, E> scanner;
 
     /**
      * Create a new parser.
@@ -110,7 +110,7 @@ public abstract class Parser<T extends Token<E>, E extends Enum, O extends Parse
     }
 
     /**
-     * A pecification verifies, that the current {@link Token} is valid.
+     * A specification verifies, that the current {@link Token} is valid.
      */
     protected class Specification {
 

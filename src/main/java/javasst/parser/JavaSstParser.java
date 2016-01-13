@@ -2,9 +2,6 @@ package javasst.parser;
 
 import ast.Ast;
 import ast.Node;
-import exceptions.SymbolAlreadyExists;
-import exceptions.UnknownReturnTypeException;
-import exceptions.UnknownSymbolException;
 import javasst.ast.JavaSstNode;
 import javasst.ast.JavaSstNodeClass;
 import javasst.ast.JavaSstNodeSubclass;
@@ -15,10 +12,7 @@ import parser.Parser;
 import parser.SymbolTable;
 import scanner.Scanner;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -71,7 +65,7 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType, JavaSs
 
         try {
             symbolTable.add(parserObject);
-        } catch (SymbolAlreadyExists symbolAlreadyExists) {
+        } catch (SymbolTable.SymbolAlreadyExists symbolAlreadyExists) {
             LOGGER.log(Level.SEVERE, "Class name already used.", symbolAlreadyExists);
             System.exit(symbolAlreadyExists.hashCode());
         }
@@ -88,14 +82,7 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType, JavaSs
     private void classBody() {
         token().is(CURLY_BRACE_OPEN).once();
         token().is(FINAL).repeat(this::constant);
-        token().is(first("variable_declaration")).repeat(() -> {
-            try {
-                variableDeclaration();
-            } catch (SymbolAlreadyExists symbolAlreadyExists) {
-                LOGGER.log(Level.SEVERE, "Variable name already used.", symbolAlreadyExists);
-                System.exit(symbolAlreadyExists.hashCode());
-            }
-        });
+        token().is(first("variable_declaration")).repeat(this::variableDeclaration);
         token().is(first("function_declaration")).repeat(this::functionDeclaration);
         token().is(CURLY_BRACE_CLOSE).once();
     }
@@ -122,8 +109,8 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType, JavaSs
         p.setType(JavaSstParserObjectType.INTEGER);
         try {
             symbolTable.add(p);
-        } catch (SymbolAlreadyExists symbolAlreadyExists) {
-            LOGGER.log(Level.SEVERE, "Class name already used.", symbolAlreadyExists);
+        } catch (SymbolTable.SymbolAlreadyExists symbolAlreadyExists) {
+            LOGGER.log(Level.SEVERE, "Constant name already used.", symbolAlreadyExists);
             System.exit(symbolAlreadyExists.hashCode());
         }
 
@@ -151,7 +138,7 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType, JavaSs
      * <p>
      * TODO: Add handling for non integer variable declarations.
      */
-    private void variableDeclaration() throws SymbolAlreadyExists {
+    private void variableDeclaration() {
         // Verify syntax.
         type();
         final JavaSstToken token = token().is(IDENT).once();
@@ -159,7 +146,12 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType, JavaSs
 
         // Build symbol table.
         JavaSstParserObject p = new JavaSstParserObject(token, JavaSstParserObjectClass.VARIABLE);
-        symbolTable.add(p);
+        try {
+            symbolTable.add(p);
+        } catch (SymbolTable.SymbolAlreadyExists symbolAlreadyExists) {
+            LOGGER.log(Level.SEVERE, "Identifier already used.", symbolAlreadyExists);
+            System.exit(symbolAlreadyExists.hashCode());
+        }
     }
 
     /**
@@ -183,21 +175,14 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType, JavaSs
             parameters.forEach((object) -> {
                 try {
                     symbolTable.add(object);
-                } catch (SymbolAlreadyExists symbolAlreadyExists) {
+                } catch (SymbolTable.SymbolAlreadyExists symbolAlreadyExists) {
                     LOGGER.log(Level.SEVERE, "Parameter name already used.", symbolAlreadyExists);
                     System.exit(symbolAlreadyExists.hashCode());
                 }
             });
 
             token().is(CURLY_BRACE_OPEN).once();
-            token().is(first("variable_declaration")).repeat(() -> {
-                try {
-                    variableDeclaration();
-                } catch (SymbolAlreadyExists symbolAlreadyExists) {
-                    LOGGER.log(Level.SEVERE, "Variable name already used.", symbolAlreadyExists);
-                    System.exit(symbolAlreadyExists.hashCode());
-                }
-            });
+            token().is(first("variable_declaration")).repeat(this::variableDeclaration);
 
             statementSequence();
             token().is(CURLY_BRACE_CLOSE).once();
@@ -222,14 +207,14 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType, JavaSs
                 n.setType(JavaSstNodeType.INTEGER);
                 break;
             default:
-                Logger.getAnonymousLogger().log(Level.SEVERE, t.toString()); // FIXME: Add to Exception.
-                throw new UnknownReturnTypeException();
+                LOGGER.log(Level.SEVERE, "Unknown return type " + t.toString());
+                System.exit(-1);
         }
 
         n.setObject(p);
         try {
             symbolTable.add(p);
-        } catch (SymbolAlreadyExists symbolAlreadyExists) {
+        } catch (SymbolTable.SymbolAlreadyExists symbolAlreadyExists) {
             LOGGER.log(Level.SEVERE, "Function name already used.", symbolAlreadyExists);
             System.exit(symbolAlreadyExists.hashCode());
         }
@@ -395,7 +380,13 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType, JavaSs
                 actualParameters();
             } else {
                 node.setClazz(JavaSstNodeClass.VARIABLE);
-                node.setObject(symbolTable.object(identifier).orElseThrow(() -> new UnknownSymbolException(t)));
+                Optional<JavaSstParserObject> o = symbolTable.object(identifier);
+                if (o.isPresent()) {
+                    node.setObject(o.get());
+                } else {
+                    LOGGER.severe("Unknown identifier " + t);
+                    System.exit(-1);
+                }
             }
         } else if (NUMBER == token.getType()) {
             node.setClazz(JavaSstNodeClass.NUMBER);

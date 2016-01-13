@@ -13,7 +13,7 @@ public abstract class Token<E extends Enum> {
     /**
      * The identifier.
      */
-    private final String identifer;
+    private final String identifier;
 
     /**
      * The type.
@@ -57,7 +57,7 @@ public abstract class Token<E extends Enum> {
      * @param file       The file.
      */
     public Token(final String identifier, final E type, final int line, final int column, final File file) {
-        this.identifer = identifier;
+        this.identifier = identifier;
         this.type = type;
         this.line = line;
         this.column = column;
@@ -79,7 +79,7 @@ public abstract class Token<E extends Enum> {
      * @return The identifier.
      */
     public String getIdentifier() {
-        return identifer;
+        return identifier;
     }
 
     /**
@@ -111,7 +111,7 @@ public abstract class Token<E extends Enum> {
 
     @Override
     public String toString() {
-        final String base = type + " " + identifer + " at position " + line + ":" + column;
+        final String base = type + " " + identifier + " at position " + line + ":" + column;
         if (file.isPresent()) {
             return base + " in file " + file.get();
         } else {

@@ -177,19 +177,6 @@ public class JavaSstParserObject implements parser.ParserObject {
     }
 
     /**
-     * Add a parameter to the parameter list.
-     *
-     * @param parameter The parameter.
-     */
-    public void addParameter(final JavaSstParserObject parameter) {
-        if (objectClass == JavaSstParserObjectClass.FUNCTION) {
-            // TODO: Do your thing.
-        } else {
-            throw new ObjectClassException(JavaSstParserObjectClass.FUNCTION);
-        }
-    }
-
-    /**
      * Get the result.
      *
      * @return The result.
