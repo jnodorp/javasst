@@ -1,47 +1,121 @@
 package scanner;
 
 import java.io.File;
+import java.util.Optional;
 
 /**
  * A token is an identifier used within a programming language. E.g. int, class, etc..
  *
  * @param <E> The tokens type enumeration.
  */
-public interface Token<E extends Enum> {
+public abstract class Token<E extends Enum> {
 
     /**
-     * Get the tokens type for comparison. This should be a unique number per type (ideally the ordnal of an
-     * enumeration).
-     *
-     * @return The tokens type.
+     * The identifier.
      */
-    E getType();
+    private final String identifer;
 
     /**
-     * Get the tokens identifier. This is the string which 'created' the token.
-     *
-     * @return The tokens identifier.
+     * The type.
      */
-    String getIdentifier();
+    private final E type;
 
     /**
-     * Get the line in the parsed file.
-     *
-     * @return The line in the parsed file.
+     * The line.
      */
-    int getLine();
+    private final int line;
 
     /**
-     * Get the column in the parsed file.
-     *
-     * @return The column in the parsed file.
+     * The column.
      */
-    int getColumn();
+    private final int column;
 
     /**
-     * Get the parsed file.
-     *
-     * @return The parsed file.
+     * The file.
      */
-    File getFile();
+    private final Optional<File> file;
+
+    /**
+     * Create a new token.
+     *
+     * @param identifier The identifier.
+     * @param type       The type.
+     * @param line       The line.
+     * @param column     The column.
+     */
+    public Token(final String identifier, final E type, final int line, final int column) {
+        this(identifier, type, line, column, null);
+    }
+
+    /**
+     * Create a new token.
+     *
+     * @param identifier The identifier.
+     * @param type       The type.
+     * @param line       The line.
+     * @param column     The column.
+     * @param file       The file.
+     */
+    public Token(final String identifier, final E type, final int line, final int column, final File file) {
+        this.identifer = identifier;
+        this.type = type;
+        this.line = line;
+        this.column = column;
+        this.file = Optional.ofNullable(file);
+    }
+
+    /**
+     * Get the tokens type.
+     *
+     * @return The type.
+     */
+    public E getType() {
+        return type;
+    }
+
+    /**
+     * Get the identifier.
+     *
+     * @return The identifier.
+     */
+    public String getIdentifier() {
+        return identifer;
+    }
+
+    /**
+     * Get the line.
+     *
+     * @return The line.
+     */
+    public int getLine() {
+        return line;
+    }
+
+    /**
+     * Get the column.
+     *
+     * @return The column.
+     */
+    public int getColumn() {
+        return column;
+    }
+
+    /**
+     * Get the file.
+     *
+     * @return The file.
+     */
+    public Optional<File> getFile() {
+        return file;
+    }
+
+    @Override
+    public String toString() {
+        final String base = type + " " + identifer + " at position " + line + ":" + column;
+        if (file.isPresent()) {
+            return base + " in file " + file.get();
+        } else {
+            return base;
+        }
+    }
 }

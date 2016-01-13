@@ -14,7 +14,6 @@ import javasst.scanner.JavaSstTokenType;
 import parser.Parser;
 import parser.SymbolTable;
 import scanner.Scanner;
-import scanner.Token;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -84,7 +83,7 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType, JavaSs
     }
 
     /**
-     * Class body: &#123; {@link #constant()} {@link #variableDeclaration()} {@link #methodDeclaration()} &#125;.
+     * Class body: &#123; {@link #constant()} {@link #variableDeclaration()} {@link #functionDeclaration()} &#125;.
      */
     private void classBody() {
         token().is(CURLY_BRACE_OPEN).once();
@@ -97,7 +96,7 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType, JavaSs
                 System.exit(symbolAlreadyExists.hashCode());
             }
         });
-        token().is(first("method_declaration")).repeat(this::methodDeclaration);
+        token().is(first("function_declaration")).repeat(this::functionDeclaration);
         token().is(CURLY_BRACE_CLOSE).once();
     }
 
@@ -164,12 +163,12 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType, JavaSs
     }
 
     /**
-     * Method declaration: {@code public} ... {@link JavaSstTokenType#IDENT} ...
+     * Function declaration: {@code public} ... {@link JavaSstTokenType#IDENT} ...
      * <p>
      * TODO: Finish documentation.
-     * TODO: Add handling for non integer method declarations.
+     * TODO: Add handling for non integer function declarations.
      */
-    private void methodDeclaration() {
+    private void functionDeclaration() {
         // Verify syntax.
         token().is(PUBLIC).once();
         final JavaSstToken t = token;
@@ -206,12 +205,12 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType, JavaSs
 
         // Build symbol table.
         @SuppressWarnings("unchecked")
-        JavaSstParserObject p = new JavaSstParserObject(token, JavaSstParserObjectClass.PROCEDURE, st[0]);
+        JavaSstParserObject p = new JavaSstParserObject(token, JavaSstParserObjectClass.FUNCTION, st[0]);
         p.setType(JavaSstParserObjectType.INTEGER);
 
         // Build AST.
         JavaSstNode n = new JavaSstNode();
-        n.setClazz(JavaSstNodeClass.METHOD);
+        n.setClazz(JavaSstNodeClass.FUNCTION);
 
         switch (type) {
             case "void":
@@ -231,7 +230,7 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType, JavaSs
         try {
             symbolTable.add(p);
         } catch (SymbolAlreadyExists symbolAlreadyExists) {
-            LOGGER.log(Level.SEVERE, "Method name already used.", symbolAlreadyExists);
+            LOGGER.log(Level.SEVERE, "Function name already used.", symbolAlreadyExists);
             System.exit(symbolAlreadyExists.hashCode());
         }
 
@@ -287,7 +286,7 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType, JavaSs
     }
 
     private void statement() {
-        // Could be an assignment or a procedure call.
+        // Could be an assignment or a function call.
         if (IDENT == token.getType()) {
             next();
 
@@ -391,7 +390,7 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType, JavaSs
             final String identifier = token.getIdentifier();
             next();
 
-            // Could be an internal procedure call.
+            // Could be an internal function call.
             if (PARENTHESIS_OPEN == token.getType()) {
                 actualParameters();
             } else {
@@ -443,10 +442,10 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType, JavaSs
             case "type":
                 result.add(INT);
                 break;
-            case "method_declaration":
-                result.addAll(first("method_head"));
+            case "function_declaration":
+                result.addAll(first("function_head"));
                 break;
-            case "method_head":
+            case "function_head":
                 result.add(PUBLIC);
                 break;
             case "fp_section":
@@ -457,7 +456,7 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType, JavaSs
                 break;
             case "statement":
                 result.addAll(first("assignment"));
-                result.addAll(first("procedure_call"));
+                result.addAll(first("function_call"));
                 result.addAll(first("if_statement"));
                 result.addAll(first("while_statement"));
                 result.addAll(first("return_statement"));
@@ -465,7 +464,7 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType, JavaSs
             case "assignment":
                 result.add(IDENT);
                 break;
-            case "procedure_call":
+            case "function_call":
                 result.add(IDENT);
                 break;
             case "if_statement":

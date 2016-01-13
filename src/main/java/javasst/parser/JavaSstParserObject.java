@@ -104,21 +104,21 @@ public class JavaSstParserObject implements parser.ParserObject {
      * @return The {@link SymbolTable}.
      */
     public SymbolTable<JavaSstParserObject> getSymbolTable() {
-        if (objectClass == JavaSstParserObjectClass.CLASS || objectClass == JavaSstParserObjectClass.PROCEDURE) {
+        if (objectClass == JavaSstParserObjectClass.CLASS || objectClass == JavaSstParserObjectClass.FUNCTION) {
             return symbolTable;
         } else {
-            throw new ObjectClassException(JavaSstParserObjectClass.CLASS, JavaSstParserObjectClass.PROCEDURE);
+            throw new ObjectClassException(JavaSstParserObjectClass.CLASS, JavaSstParserObjectClass.FUNCTION);
         }
     }
 
     /**
-     * Get the method declarations.
+     * Get the function declarations.
      *
-     * @return The method declarations.
+     * @return The function declarations.
      */
-    public List<JavaSstParserObject> getMethodDeclarations() {
+    public List<JavaSstParserObject> getFunctionDeclarations() {
         if (objectClass == JavaSstParserObjectClass.CLASS) {
-            return symbolTable.getObjects().stream().filter(o -> JavaSstParserObjectClass.PROCEDURE == o.getObjectClass()).collect(Collectors.toList());
+            return symbolTable.getObjects().stream().filter(o -> JavaSstParserObjectClass.FUNCTION == o.getObjectClass()).collect(Collectors.toList());
         } else {
             throw new ObjectClassException(JavaSstParserObjectClass.CLASS);
         }
@@ -169,10 +169,10 @@ public class JavaSstParserObject implements parser.ParserObject {
      * @return The parameter list.
      */
     public List<JavaSstParserObject> getParameterList() {
-        if (objectClass == JavaSstParserObjectClass.PROCEDURE) {
+        if (objectClass == JavaSstParserObjectClass.FUNCTION) {
             return symbolTable.getObjects().stream().filter(o -> JavaSstParserObjectClass.PARAMETER == o.getObjectClass()).collect(Collectors.toList());
         } else {
-            throw new ObjectClassException(JavaSstParserObjectClass.PROCEDURE);
+            throw new ObjectClassException(JavaSstParserObjectClass.FUNCTION);
         }
     }
 
@@ -182,10 +182,10 @@ public class JavaSstParserObject implements parser.ParserObject {
      * @param parameter The parameter.
      */
     public void addParameter(final JavaSstParserObject parameter) {
-        if (objectClass == JavaSstParserObjectClass.PROCEDURE) {
+        if (objectClass == JavaSstParserObjectClass.FUNCTION) {
             // TODO: Do your thing.
         } else {
-            throw new ObjectClassException(JavaSstParserObjectClass.PROCEDURE);
+            throw new ObjectClassException(JavaSstParserObjectClass.FUNCTION);
         }
     }
 
@@ -195,11 +195,16 @@ public class JavaSstParserObject implements parser.ParserObject {
      * @return The result.
      */
     public JavaSstParserObjectType getResult() {
-        if (objectClass == JavaSstParserObjectClass.PROCEDURE) {
+        if (objectClass == JavaSstParserObjectClass.FUNCTION) {
             return null; // FIXME
         } else {
-            throw new ObjectClassException(JavaSstParserObjectClass.PROCEDURE);
+            throw new ObjectClassException(JavaSstParserObjectClass.FUNCTION);
         }
+    }
+
+    @Override
+    public String toString() {
+        return token.toString();
     }
 
     /**
@@ -215,10 +220,5 @@ public class JavaSstParserObject implements parser.ParserObject {
         public ObjectClassException(final JavaSstParserObjectClass... expected) {
             super("Expected class of " + Arrays.toString(expected) + " but was " + objectClass);
         }
-    }
-
-    @Override
-    public String toString() {
-        return token.toString();
     }
 }

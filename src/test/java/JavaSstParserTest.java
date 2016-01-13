@@ -58,8 +58,8 @@ public class JavaSstParserTest {
         assertTrue(root.object("A").isPresent());
 
         JavaSstParserObject a = root.object("A").get();
-        assertEquals(1, a.getMethodDeclarations().size());
-        assertEquals("f", a.getMethodDeclarations().get(0).getIdentifier());
+        assertEquals(1, a.getFunctionDeclarations().size());
+        assertEquals("f", a.getFunctionDeclarations().get(0).getIdentifier());
         assertEquals(JavaSstParserObjectClass.CLASS, a.getObjectClass());
         assertNotNull(a.getSymbolTable());
         assertEquals(1, a.getVariableDefinitions().size());

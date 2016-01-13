@@ -54,7 +54,7 @@ public final class SymbolTable<O extends parser.ParserObject> {
     /**
      * Get a {@link ParserObject} from this or any enclosing symbol table.
      * <p>
-     * TODO: Allow e.g. methods and variables with the same name.
+     * TODO: Allow e.g. functions and variables with the same name.
      *
      * @param name The objects name.
      * @return The {@link ParserObject} from this or any enclosing symbol table.

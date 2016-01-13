@@ -83,10 +83,10 @@ public abstract class Parser<T extends Token<E>, E extends Enum, O extends Parse
      * @param expected A list of expected tokens.
      */
     protected void error(final List<E> expected) {
-        String message = "Unexpected token " + System.lineSeparator() + token + System.lineSeparator();
+        String message = "Unexpected token " + token;
 
         if (expected.size() > 0) {
-            message += " Expected token of one of the following types: " + expected.toString() + ".";
+            message += ". Expected token of one of the following types: " + expected.toString() + ".";
         }
 
         LOGGER.log(Level.SEVERE, message);

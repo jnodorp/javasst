@@ -42,21 +42,21 @@ public class JavaSstScannerTest {
         symbol = scanner.next();
         Assert.assertEquals(CLASS, symbol.getType());
         assertEquals("class", symbol.getIdentifier());
-        assertEquals(FILE, symbol.getFile().toString());
+        assertEquals(FILE, symbol.getFile().get().toString());
         assertEquals(4, symbol.getLine());
         assertEquals(1, symbol.getColumn());
 
         symbol = scanner.next();
         assertEquals(IDENT, symbol.getType());
         assertEquals("className6", symbol.getIdentifier());
-        assertEquals(FILE, symbol.getFile().toString());
+        assertEquals(FILE, symbol.getFile().get().toString());
         assertEquals(4, symbol.getLine());
         assertEquals(7, symbol.getColumn());
 
         symbol = scanner.next();
         assertEquals(CURLY_BRACE_OPEN, symbol.getType());
         assertEquals("{", symbol.getIdentifier());
-        assertEquals(FILE, symbol.getFile().toString());
+        assertEquals(FILE, symbol.getFile().get().toString());
         assertEquals(4, symbol.getLine());
         assertEquals(18, symbol.getColumn());
 
@@ -64,42 +64,42 @@ public class JavaSstScannerTest {
         symbol = scanner.next();
         assertEquals(FINAL, symbol.getType());
         assertEquals("final", symbol.getIdentifier());
-        assertEquals(FILE, symbol.getFile().toString());
+        assertEquals(FILE, symbol.getFile().get().toString());
         assertEquals(5, symbol.getLine());
         assertEquals(5, symbol.getColumn());
 
         symbol = scanner.next();
         assertEquals(INT, symbol.getType());
         assertEquals("int", symbol.getIdentifier());
-        assertEquals(FILE, symbol.getFile().toString());
+        assertEquals(FILE, symbol.getFile().get().toString());
         assertEquals(5, symbol.getLine());
         assertEquals(11, symbol.getColumn());
 
         symbol = scanner.next();
         assertEquals(IDENT, symbol.getType());
         assertEquals("intConst1", symbol.getIdentifier());
-        assertEquals(FILE, symbol.getFile().toString());
+        assertEquals(FILE, symbol.getFile().get().toString());
         assertEquals(5, symbol.getLine());
         assertEquals(15, symbol.getColumn());
 
         symbol = scanner.next();
         assertEquals(EQUALS, symbol.getType());
         assertEquals("=", symbol.getIdentifier());
-        assertEquals(FILE, symbol.getFile().toString());
+        assertEquals(FILE, symbol.getFile().get().toString());
         assertEquals(5, symbol.getLine());
         assertEquals(25, symbol.getColumn());
 
         symbol = scanner.next();
         assertEquals(NUMBER, symbol.getType());
         assertEquals("123", symbol.getIdentifier());
-        assertEquals(FILE, symbol.getFile().toString());
+        assertEquals(FILE, symbol.getFile().get().toString());
         assertEquals(5, symbol.getLine());
         assertEquals(27, symbol.getColumn());
 
         symbol = scanner.next();
         assertEquals(SEMICOLON, symbol.getType());
         assertEquals(";", symbol.getIdentifier());
-        assertEquals(FILE, symbol.getFile().toString());
+        assertEquals(FILE, symbol.getFile().get().toString());
         assertEquals(5, symbol.getLine());
         assertEquals(30, symbol.getColumn());
 
