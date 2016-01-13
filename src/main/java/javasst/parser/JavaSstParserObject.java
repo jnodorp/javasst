@@ -1,16 +1,22 @@
 package javasst.parser;
 
+import javasst.scanner.JavaSstToken;
 import parser.SymbolTable;
+import scanner.Token;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
  * {@link JavaSstParserObject}s (e.g. variables, constant, etc.).
  */
 public class JavaSstParserObject implements parser.ParserObject {
+
+    /**
+     * The {@link Token}.
+     */
+    private final Token token;
 
     /**
      * The {@link SymbolTable}.
@@ -21,11 +27,6 @@ public class JavaSstParserObject implements parser.ParserObject {
      * The {@link JavaSstParserObjectClass}.
      */
     private final JavaSstParserObjectClass objectClass;
-
-    /**
-     * The name.
-     */
-    private String identifier;
 
     /**
      * The {@link JavaSstParserObjectType}.
@@ -40,10 +41,12 @@ public class JavaSstParserObject implements parser.ParserObject {
     /**
      * Create a new {@link JavaSstParserObject} with a {@link SymbolTable}.
      *
+     * @param token       The {@link JavaSstToken}.
      * @param objectClass The {@link JavaSstParserObjectClass}.
      * @param symbolTable The {@link SymbolTable}.
      */
-    public JavaSstParserObject(final JavaSstParserObjectClass objectClass, final SymbolTable<JavaSstParserObject> symbolTable) {
+    public JavaSstParserObject(final JavaSstToken token, final JavaSstParserObjectClass objectClass, final SymbolTable<JavaSstParserObject> symbolTable) {
+        this.token = token;
         this.objectClass = objectClass;
         this.symbolTable = symbolTable;
     }
@@ -51,28 +54,21 @@ public class JavaSstParserObject implements parser.ParserObject {
     /**
      * Create a new {@link JavaSstParserObject}.
      *
+     * @param token       The {@link JavaSstToken}.
      * @param objectClass The {@link JavaSstParserObjectClass}.
      */
-    public JavaSstParserObject(final JavaSstParserObjectClass objectClass) {
-        this(objectClass, null);
+    public JavaSstParserObject(final JavaSstToken token, final JavaSstParserObjectClass objectClass) {
+        this(token, objectClass, null);
     }
 
-    /**
-     * Get the identifier.
-     *
-     * @return The identifier.
-     */
+    @Override
+    public Token getToken() {
+        return token;
+    }
+
+    @Override
     public String getIdentifier() {
-        return identifier;
-    }
-
-    /**
-     * Set the identifier.
-     *
-     * @param identifier The identifier.
-     */
-    public void setIdentifier(String identifier) {
-        this.identifier = identifier;
+        return token.getIdentifier();
     }
 
     /**
@@ -133,11 +129,11 @@ public class JavaSstParserObject implements parser.ParserObject {
      *
      * @return The variable definitions.
      */
-    public Optional<JavaSstParserObject> getVariableDefinitions() {
+    public List<JavaSstParserObject> getVariableDefinitions() {
         if (objectClass == JavaSstParserObjectClass.CLASS) {
-            return Optional.empty(); // FIXME
+            return symbolTable.getObjects().stream().filter(o -> JavaSstParserObjectClass.VARIABLE == o.getObjectClass()).collect(Collectors.toList());
         } else {
-            return Optional.empty();
+            throw new ObjectClassException(JavaSstParserObjectClass.CLASS);
         }
     }
 
@@ -172,9 +168,9 @@ public class JavaSstParserObject implements parser.ParserObject {
      *
      * @return The parameter list.
      */
-    public JavaSstParserObject getParameterList() {
+    public List<JavaSstParserObject> getParameterList() {
         if (objectClass == JavaSstParserObjectClass.PROCEDURE) {
-            return null; // FIXME
+            return symbolTable.getObjects().stream().filter(o -> JavaSstParserObjectClass.PARAMETER == o.getObjectClass()).collect(Collectors.toList());
         } else {
             throw new ObjectClassException(JavaSstParserObjectClass.PROCEDURE);
         }
@@ -221,4 +217,8 @@ public class JavaSstParserObject implements parser.ParserObject {
         }
     }
 
+    @Override
+    public String toString() {
+        return token.toString();
+    }
 }

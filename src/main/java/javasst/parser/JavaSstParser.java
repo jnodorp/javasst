@@ -2,6 +2,7 @@ package javasst.parser;
 
 import ast.Ast;
 import ast.Node;
+import exceptions.SymbolAlreadyExists;
 import exceptions.UnknownReturnTypeException;
 import exceptions.UnknownSymbolException;
 import javasst.ast.JavaSstNode;
@@ -13,6 +14,7 @@ import javasst.scanner.JavaSstTokenType;
 import parser.Parser;
 import parser.SymbolTable;
 import scanner.Scanner;
+import scanner.Token;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -27,6 +29,11 @@ import static javasst.scanner.JavaSstTokenType.*;
  * A parser for Java SST.
  */
 public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType, JavaSstParserObject, JavaSstNode> {
+
+    /**
+     * The logger.
+     */
+    private static final Logger LOGGER = Logger.getLogger(JavaSstParser.class.getName());
 
     /**
      * The current {@link JavaSstParserObject}.
@@ -55,16 +62,20 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType, JavaSs
         ast.setRoot(n);
         scope(() -> {
             token().is(CLASS).once();
-            final String identifier = token().is(IDENT).and().getIdentifier();
+            final JavaSstToken token = token().is(IDENT).once();
 
             // Create the {@link ParserObject}.
-            parserObject = new JavaSstParserObject(JavaSstParserObjectClass.CLASS, symbolTable);
-            parserObject.setIdentifier(identifier);
+            parserObject = new JavaSstParserObject(token, JavaSstParserObjectClass.CLASS, symbolTable);
 
             classBody();
         });
 
-        symbolTable.add(parserObject);
+        try {
+            symbolTable.add(parserObject);
+        } catch (SymbolAlreadyExists symbolAlreadyExists) {
+            LOGGER.log(Level.SEVERE, "Class name already used.", symbolAlreadyExists);
+            System.exit(symbolAlreadyExists.hashCode());
+        }
 
         // Finish AST.
         n.setObject(parserObject);
@@ -78,7 +89,14 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType, JavaSs
     private void classBody() {
         token().is(CURLY_BRACE_OPEN).once();
         token().is(FINAL).repeat(this::constant);
-        token().is(first("variable_declaration")).repeat(this::variableDeclaration);
+        token().is(first("variable_declaration")).repeat(() -> {
+            try {
+                variableDeclaration();
+            } catch (SymbolAlreadyExists symbolAlreadyExists) {
+                LOGGER.log(Level.SEVERE, "Variable name already used.", symbolAlreadyExists);
+                System.exit(symbolAlreadyExists.hashCode());
+            }
+        });
         token().is(first("method_declaration")).repeat(this::methodDeclaration);
         token().is(CURLY_BRACE_CLOSE).once();
     }
@@ -94,17 +112,21 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType, JavaSs
         // Verify syntax.
         token().is(FINAL).once();
         type();
-        final String identifier = token().is(IDENT).and().getIdentifier();
+        final JavaSstToken token = token().is(IDENT).once();
         token().is(EQUALS).once();
-        final int integerValue = Integer.parseInt(token().is(NUMBER).and().getIdentifier());
+        final int integerValue = Integer.parseInt(token().is(NUMBER).once().getIdentifier());
         token().is(SEMICOLON).once();
 
         // Build symbol table.
-        JavaSstParserObject p = new JavaSstParserObject(JavaSstParserObjectClass.CONSTANT);
-        p.setIdentifier(identifier);
+        JavaSstParserObject p = new JavaSstParserObject(token, JavaSstParserObjectClass.CONSTANT);
         p.setIntValue(integerValue);
         p.setType(JavaSstParserObjectType.INTEGER);
-        symbolTable.add(p);
+        try {
+            symbolTable.add(p);
+        } catch (SymbolAlreadyExists symbolAlreadyExists) {
+            LOGGER.log(Level.SEVERE, "Class name already used.", symbolAlreadyExists);
+            System.exit(symbolAlreadyExists.hashCode());
+        }
 
         // Build AST.
         JavaSstNode n = new JavaSstNode();
@@ -130,15 +152,14 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType, JavaSs
      * <p>
      * TODO: Add handling for non integer variable declarations.
      */
-    private void variableDeclaration() {
+    private void variableDeclaration() throws SymbolAlreadyExists {
         // Verify syntax.
         type();
-        final String identifier = token().is(IDENT).and().getIdentifier();
+        final JavaSstToken token = token().is(IDENT).once();
         token().is(SEMICOLON).once();
 
         // Build symbol table.
-        JavaSstParserObject p = new JavaSstParserObject(JavaSstParserObjectClass.VARIABLE);
-        p.setIdentifier(identifier);
+        JavaSstParserObject p = new JavaSstParserObject(token, JavaSstParserObjectClass.VARIABLE);
         symbolTable.add(p);
     }
 
@@ -152,26 +173,40 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType, JavaSs
         // Verify syntax.
         token().is(PUBLIC).once();
         final JavaSstToken t = token;
-        final String type = token().is(VOID, INT).and().getIdentifier();
+        final String type = token().is(VOID, INT).once().getIdentifier();
 
-        final String identifier = token().is(IDENT).and().getIdentifier();
+        final JavaSstToken token = token().is(IDENT).once();
         final List<JavaSstParserObject> parameters = new LinkedList<>();
         SymbolTable[] st = new SymbolTable[1];
         scope(() -> {
             st[0] = symbolTable;
             parameters.addAll(formalParameters());
-            parameters.forEach(symbolTable::add);
+            parameters.forEach((object) -> {
+                try {
+                    symbolTable.add(object);
+                } catch (SymbolAlreadyExists symbolAlreadyExists) {
+                    LOGGER.log(Level.SEVERE, "Parameter name already used.", symbolAlreadyExists);
+                    System.exit(symbolAlreadyExists.hashCode());
+                }
+            });
+
             token().is(CURLY_BRACE_OPEN).once();
-            token().is(first("variable_declaration")).repeat(this::variableDeclaration);
+            token().is(first("variable_declaration")).repeat(() -> {
+                try {
+                    variableDeclaration();
+                } catch (SymbolAlreadyExists symbolAlreadyExists) {
+                    LOGGER.log(Level.SEVERE, "Variable name already used.", symbolAlreadyExists);
+                    System.exit(symbolAlreadyExists.hashCode());
+                }
+            });
+
             statementSequence();
             token().is(CURLY_BRACE_CLOSE).once();
         });
 
         // Build symbol table.
         @SuppressWarnings("unchecked")
-        JavaSstParserObject p = new JavaSstParserObject(JavaSstParserObjectClass.PROCEDURE, st[0]);
-        p.setIdentifier(identifier);
-        parameters.forEach(p::addParameter);
+        JavaSstParserObject p = new JavaSstParserObject(token, JavaSstParserObjectClass.PROCEDURE, st[0]);
         p.setType(JavaSstParserObjectType.INTEGER);
 
         // Build AST.
@@ -193,7 +228,12 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType, JavaSs
         }
 
         n.setObject(p);
-        symbolTable.add(p);
+        try {
+            symbolTable.add(p);
+        } catch (SymbolAlreadyExists symbolAlreadyExists) {
+            LOGGER.log(Level.SEVERE, "Method name already used.", symbolAlreadyExists);
+            System.exit(symbolAlreadyExists.hashCode());
+        }
 
         // Add node to the right of root.
         if (ast.getRoot().getRight().isPresent()) {
@@ -217,22 +257,20 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType, JavaSs
         List<JavaSstParserObject> parameters = new LinkedList<>();
         token().is(first("fp_section")).optional(() -> {
             type();
-            String identifier = token().is(IDENT).and().getIdentifier();
+            JavaSstToken token = token().is(IDENT).once();
 
             // Build symbol table.
-            JavaSstParserObject parameter = new JavaSstParserObject(JavaSstParserObjectClass.PARAMETER);
-            parameter.setIdentifier(identifier);
+            JavaSstParserObject parameter = new JavaSstParserObject(token, JavaSstParserObjectClass.PARAMETER);
             parameter.setType(JavaSstParserObjectType.INTEGER);
             parameters.add(parameter);
 
             token().is(COMMA).repeat(() -> {
                 next();
                 type();
-                final String i = token().is(IDENT).and().getIdentifier();
+                final JavaSstToken t = token().is(IDENT).once();
 
                 // Build symbol table.
-                final JavaSstParserObject p = new JavaSstParserObject(JavaSstParserObjectClass.PARAMETER);
-                p.setIdentifier(i);
+                final JavaSstParserObject p = new JavaSstParserObject(t, JavaSstParserObjectClass.PARAMETER);
                 p.setType(JavaSstParserObjectType.INTEGER);
                 parameters.add(p);
             });

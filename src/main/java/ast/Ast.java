@@ -9,7 +9,7 @@ import java.util.function.Consumer;
 /**
  * The abstract syntax tree (AST).
  */
-public class Ast<N extends Node<?, ?, ?>> {
+public final class Ast<N extends Node<?, ?, ?>> {
 
     /**
      * The root.

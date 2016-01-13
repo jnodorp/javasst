@@ -165,20 +165,7 @@ public abstract class Parser<T extends Token<E>, E extends Enum, O extends Parse
         /**
          * Make sure the token is available exactly once. Throw an error otherwise.
          */
-        public void once() {
-            if (expected.contains(token.getType())) {
-                next();
-            } else {
-                error(expected);
-            }
-        }
-
-        /**
-         * Make sure the token is available exactly once. Throw an error otherwise.
-         *
-         * @return The {@link Token}.
-         */
-        public T and() {
+        public T once() {
             if (expected.contains(token.getType())) {
                 final T result = token;
                 next();

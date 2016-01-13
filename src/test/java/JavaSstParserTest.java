@@ -62,7 +62,8 @@ public class JavaSstParserTest {
         assertEquals("f", a.getMethodDeclarations().get(0).getIdentifier());
         assertEquals(JavaSstParserObjectClass.CLASS, a.getObjectClass());
         assertNotNull(a.getSymbolTable());
-        assertTrue(a.getVariableDefinitions().isPresent()); // FIXME
+        assertEquals(1, a.getVariableDefinitions().size());
+        assertEquals("y", a.getVariableDefinitions().get(0).getIdentifier());
 
         JavaSstParserObject b = a.getSymbolTable().object("b").get();
         assertEquals("b", b.getIdentifier());
@@ -72,7 +73,8 @@ public class JavaSstParserTest {
 
         JavaSstParserObject f = a.getSymbolTable().object("f").get();
         assertEquals("f", f.getIdentifier());
-        // assertEquals(3, f.getParameterList(), 0); // FIXME
+        assertEquals(1, f.getParameterList().size());
+        assertEquals("x", f.getParameterList().get(0).getIdentifier());
         assertNotNull(f.getSymbolTable());
 
         JavaSstParserObject x = f.getSymbolTable().object("x").get();

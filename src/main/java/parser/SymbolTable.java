@@ -1,5 +1,7 @@
 package parser;
 
+import exceptions.SymbolAlreadyExists;
+
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
@@ -9,7 +11,7 @@ import java.util.Optional;
  *
  * @param <O> The objects contained within this symbol table.
  */
-public class SymbolTable<O extends parser.ParserObject> {
+public final class SymbolTable<O extends parser.ParserObject> {
 
     /**
      * The enclosing symbol table.
@@ -73,7 +75,12 @@ public class SymbolTable<O extends parser.ParserObject> {
      *
      * @param object The {@link ParserObject}.
      */
-    public void add(final O object) {
-        objects.add(object);
+    public void add(final O object) throws SymbolAlreadyExists {
+        Optional<O> existing = objects.stream().filter(o -> o.getIdentifier().equals(object.getIdentifier())).findAny();
+        if (existing.isPresent()) {
+            throw new SymbolAlreadyExists(existing.get(), object);
+        } else {
+            objects.add(object);
+        }
     }
 }
