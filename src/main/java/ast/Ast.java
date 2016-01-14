@@ -65,58 +65,57 @@ public final class Ast<N extends Node<?, ?, ?>> {
         traverse(root, consumer);
     }
 
-    public String toDot() {
-        final StringBuilder prefix = new StringBuilder("digraph AST {").append(System.lineSeparator());
-        final int[] count = new int[]{0};
-        traverse(node -> {
-            prefix.append(node.toDot(Integer.toString(count[0])));
-            prefix.append(System.lineSeparator());
-            count[0]++;
-        });
-
-        return toDot(root, prefix, 0).append(System.lineSeparator()).append("}").toString();
-    }
-
     /**
      * Build a string by traversing the AST.
      *
-     * @param node   The current node.
-     * @param string The current string.
      * @return The built string.
      */
-    private StringBuilder toDot(Node<?, ?, ?> node, final StringBuilder string, int count) {
+    public String toDot() {
         final List<Node<?, ?, ?>> nodes = new ArrayList<>();
-        traverse(nodes::add);
 
-        while (node != null) {
+        // Prepare string with node definitions.
+        final StringBuilder string = new StringBuilder("digraph AST {").append(System.lineSeparator());
+        traverse(node -> {
+            string.append("\t");
+            string.append(node.toDot(Integer.toString(nodes.size())));
+            string.append(System.lineSeparator());
+            nodes.add(node);
+        });
+        string.append(System.lineSeparator());
+
+        // Add edges to string.
+        traverse(node -> {
+            final String s = "\t" + index(nodes, node) + " -> ";
             if (node.getLeft().isPresent()) {
-                String link = index(nodes, node) + " -> " + index(nodes, node.getLeft().get()) + ";";
-                string.append(link).append(System.lineSeparator());
-                return toDot(node.getLeft().get(), string, count + 1);
+                string.append(s).append(index(nodes, node.getLeft().get()));
+                string.append("[ label=\"left\"]").append(";").append(System.lineSeparator());
             }
 
             if (node.getRight().isPresent()) {
-                String link = index(nodes, node) + " -> " + index(nodes, node.getRight().get()) + ";";
-                string.append(link).append(System.lineSeparator());
-                return toDot(node.getRight().get(), string, count + 1);
+                string.append(s).append(index(nodes, node.getRight().get()));
+                string.append("[ label=\"right\"]").append(";").append(System.lineSeparator());
             }
 
             if (node.getLink().isPresent()) {
-                String link = index(nodes, node) + " -> " + index(nodes, node.getLink().get()) + ";";
-                string.append(link).append(System.lineSeparator());
-                node = node.getLink().get();
-            } else {
-                node = null;
+                string.append(s).append(index(nodes, node.getLink().get()));
+                string.append("[ label=\"link\"]").append(";").append(System.lineSeparator());
             }
-        }
+        });
 
-        return string;
+        return string.append("}").toString();
     }
 
-    private String index(final List<?> list, final Object object) {
+    /**
+     * Get the index of a {@link Node} in a list of {@link Node}s.
+     *
+     * @param list   The list.
+     * @param object The {@link Node}.
+     * @return The index of the {@link Node} pre and post fixed with a '"'.
+     */
+    private String index(final List<Node<?, ?, ?>> list, final Node<?, ?, ?> object) {
         for (int i = 0; i < list.size(); i++) {
-            if (object.equals(list.get(0))) {
-                return Integer.toString(i);
+            if (object.equals(list.get(i))) {
+                return "\"" + Integer.toString(i) + "\"";
             }
         }
 

@@ -1,3 +1,4 @@
+import ast.Ast;
 import javasst.ast.JavaSstNode;
 import javasst.parser.JavaSstParser;
 import javasst.parser.JavaSstParserObject;

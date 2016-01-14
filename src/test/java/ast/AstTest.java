@@ -3,6 +3,11 @@ package ast;
 import org.junit.Before;
 import org.junit.Test;
 
+import java.io.File;
+import java.util.Scanner;
+
+import static org.junit.Assert.assertEquals;
+
 /**
  * Test class for {@link Ast}.
  */
@@ -46,7 +51,7 @@ public class AstTest {
         n8.setClazz(C.N8);
 
         TestNode n9 = new TestNode();
-        n0.setClazz(C.N9);
+        n9.setClazz(C.N9);
 
         TestNode n10 = new TestNode();
         n10.setClazz(C.N10);
@@ -75,10 +80,9 @@ public class AstTest {
 
     @Test
     public void testToDot() throws Exception {
-        System.out.println(ast.toDot());
-    }
-
-    private class TestNode extends Node<C, S, T> {
+        final String dot = ast.toDot();
+        final String expected = new Scanner(new File("src/test/resources/ast.dot")).useDelimiter("\\Z").next();
+        assertEquals(expected, dot);
     }
 
     private enum C {ROOT, N0, N1, N2, N3, N4, N5, N6, N7, N8, N9, N10, N11}
@@ -86,4 +90,7 @@ public class AstTest {
     private enum S {}
 
     private enum T {}
+
+    private class TestNode extends Node<C, S, T> {
+    }
 }

@@ -1,0 +1,28 @@
+digraph AST {
+	"0" [shape=record, label="{<class> N3 | <subclass> null | <type> null | <object> - | <constant> -}"];
+	"1" [shape=record, label="{<class> N4 | <subclass> null | <type> null | <object> - | <constant> -}"];
+	"2" [shape=record, label="{<class> N0 | <subclass> null | <type> null | <object> - | <constant> -}"];
+	"3" [shape=record, label="{<class> N5 | <subclass> null | <type> null | <object> - | <constant> -}"];
+	"4" [shape=record, label="{<class> N6 | <subclass> null | <type> null | <object> - | <constant> -}"];
+	"5" [shape=record, label="{<class> N7 | <subclass> null | <type> null | <object> - | <constant> -}"];
+	"6" [shape=record, label="{<class> N1 | <subclass> null | <type> null | <object> - | <constant> -}"];
+	"7" [shape=record, label="{<class> N8 | <subclass> null | <type> null | <object> - | <constant> -}"];
+	"8" [shape=record, label="{<class> ROOT | <subclass> null | <type> null | <object> - | <constant> -}"];
+	"9" [shape=record, label="{<class> N9 | <subclass> null | <type> null | <object> - | <constant> -}"];
+	"10" [shape=record, label="{<class> N10 | <subclass> null | <type> null | <object> - | <constant> -}"];
+	"11" [shape=record, label="{<class> N2 | <subclass> null | <type> null | <object> - | <constant> -}"];
+	"12" [shape=record, label="{<class> N11 | <subclass> null | <type> null | <object> - | <constant> -}"];
+
+	"2" -> "0"[ label="left"];
+	"2" -> "1"[ label="right"];
+	"2" -> "3"[ label="link"];
+	"6" -> "4"[ label="left"];
+	"6" -> "5"[ label="right"];
+	"6" -> "7"[ label="link"];
+	"8" -> "2"[ label="left"];
+	"8" -> "6"[ label="right"];
+	"8" -> "11"[ label="link"];
+	"11" -> "9"[ label="left"];
+	"11" -> "10"[ label="right"];
+	"11" -> "12"[ label="link"];
+}
