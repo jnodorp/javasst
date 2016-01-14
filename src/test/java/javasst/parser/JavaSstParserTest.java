@@ -1,3 +1,5 @@
+package javasst.parser;
+
 import ast.Ast;
 import javasst.ast.JavaSstNode;
 import javasst.parser.JavaSstParser;

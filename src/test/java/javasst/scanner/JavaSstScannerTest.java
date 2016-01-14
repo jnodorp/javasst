@@ -1,3 +1,5 @@
+package javasst.scanner;
+
 import javasst.scanner.JavaSstScanner;
 import javasst.scanner.JavaSstToken;
 import javasst.scanner.JavaSstTokenType;
