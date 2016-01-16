@@ -1,6 +1,7 @@
 package javasst.parser;
 
 import ast.Ast;
+import ast.Node;
 import javasst.JavaSstType;
 import javasst.ast.JavaSstNode;
 import javasst.scanner.JavaSstToken;
@@ -8,10 +9,7 @@ import parser.Parser;
 import parser.SymbolTable;
 import scanner.Scanner;
 
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -249,7 +247,6 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstType, JavaSstPars
      * @return TODO: Documentation.
      */
     private JavaSstNode statement() {
-        final JavaSstNode node = new JavaSstNode();
         final JavaSstToken t = token;
 
         // Could be an assignment or a function call.
@@ -257,15 +254,16 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstType, JavaSstPars
             next();
 
             if (PARENTHESIS_OPEN == token.getType()) {
-                actualParameters();
+                final JavaSstNode node = new JavaSstNode(CALL);
+                node.setObject(symbolTable.object(t.getIdentifier()).orElseThrow(UnknownError::new));
+                node.setLeft(actualParameters().get());
                 token(SEMICOLON).once();
+                return node;
             } else if (EQUALS == token.getType()) {
                 token(EQUALS).once();
-                node.setClazz(ASSIGNMENT);
-                node.setType(INTEGER);
+                final JavaSstNode node = new JavaSstNode(ASSIGNMENT, INTEGER);
 
-                JavaSstNode left = new JavaSstNode();
-                left.setClazz(VARIABLE);
+                final JavaSstNode left = new JavaSstNode(VARIABLE);
                 left.setObject(symbolTable.object(t.getIdentifier()).orElseThrow(UnknownError::new));
                 node.setLeft(left);
                 node.setRight(expression());
@@ -275,7 +273,7 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstType, JavaSstPars
                 error(PARENTHESIS_OPEN, EQUALS);
             }
         } else if (first("if_statement").contains(token.getType())) {
-            ifStatement();
+            return ifStatement();
         } else if (first("while_statement").contains(token.getType())) {
             return whileStatement();
         } else if (first("return_statement").contains(token.getType())) {
@@ -291,24 +289,29 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstType, JavaSstPars
         token(INT).once();
     }
 
-    private void ifStatement() {
+    private JavaSstNode ifStatement() {
         token(IF).once();
+        final JavaSstNode ifElse = new JavaSstNode(IF_ELSE);
+        final JavaSstNode node = new JavaSstNode(IF);
+        ifElse.setLeft(node);
+
         token(PARENTHESIS_OPEN).once();
-        expression();
+        node.setLeft(expression());
         token(PARENTHESIS_CLOSE).once();
         token(CURLY_BRACE_OPEN).once();
-        statementSequence();
+        node.setRight(statementSequence());
         token(CURLY_BRACE_CLOSE).once();
         token(ELSE).once();
         token(CURLY_BRACE_OPEN).once();
-        statementSequence();
+        ifElse.setRight(statementSequence());
         token(CURLY_BRACE_CLOSE).once();
+
+        return ifElse;
     }
 
     private JavaSstNode whileStatement() {
         token(WHILE).once();
-        JavaSstNode node = new JavaSstNode();
-        node.setClazz(WHILE);
+        final JavaSstNode node = new JavaSstNode(WHILE);
 
         token(PARENTHESIS_OPEN).once();
         node.setLeft(expression());
@@ -328,9 +331,7 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstType, JavaSstPars
      */
     private JavaSstNode returnStatement() {
         token(RETURN).once();
-        JavaSstNode node = new JavaSstNode();
-        node.setClazz(RETURN);
-        node.setType(VOID);
+        final JavaSstNode node = new JavaSstNode(RETURN, VOID);
 
         token(first("simple_expression")).optional(x -> {
             node.setLeft(simpleExpression());
@@ -341,17 +342,23 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstType, JavaSstPars
         return node;
     }
 
-    private void actualParameters() {
+    private Optional<Node<JavaSstType, JavaSstType>> actualParameters() {
+        final JavaSstNode node = new JavaSstNode();
         token(PARENTHESIS_OPEN).once();
         token(first("expression")).optional(x -> {
-            expression();
+            node.setLink(expression());
             token(COMMA).repeat(() -> {
                 token(COMMA).once();
-                expression();
+                Node<JavaSstType, JavaSstType> current = node;
+                while (current.getLink().isPresent()) {
+                    current = current.getLink().get();
+                }
+                current.setLink(expression());
             });
         });
 
         token(PARENTHESIS_CLOSE).once();
+        return node.getLink();
     }
 
     private JavaSstNode expression() {
@@ -447,16 +454,18 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstType, JavaSstPars
         JavaSstNode node = new JavaSstNode();
         switch (token.getType()) {
             case IDENT:
-                final String identifier = token.getIdentifier();
+                final JavaSstToken t = token;
                 next();
 
                 // Could be an internal function call.
                 if (PARENTHESIS_OPEN == token.getType()) {
-                    actualParameters();
+                    node.setClazz(CALL);
+                    node.setObject(symbolTable.object(t.getIdentifier()).orElseGet(() -> new JavaSstParserObjectFuture(t.getIdentifier(), symbolTable)));
+                    node.setLeft(actualParameters().orElse(null));
                 } else {
                     node.setClazz(VARIABLE);
                     node.setType(INTEGER);
-                    JavaSstParserObject o = symbolTable.object(identifier).orElseThrow(UnknownError::new);
+                    JavaSstParserObject o = symbolTable.object(t.getIdentifier()).orElseThrow(UnknownError::new);
                     node.setObject(o);
                 }
                 break;

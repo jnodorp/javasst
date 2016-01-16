@@ -20,7 +20,7 @@ public enum JavaSstType {
     /**
      * Parser object and node classes.
      */
-    ASSIGNMENT, CONSTANT, FUNCTION, PARAMETER, VARIABLE,
+    ASSIGNMENT, CALL, CONSTANT, FUNCTION, IF_ELSE, PARAMETER, VARIABLE,
 
     /**
      * Parser object types.
