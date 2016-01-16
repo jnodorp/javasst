@@ -1,5 +1,6 @@
 package javasst.scanner;
 
+import javasst.JavaSstType;
 import scanner.Input;
 import scanner.Scanner;
 
@@ -7,12 +8,12 @@ import java.util.InputMismatchException;
 import java.util.logging.Level;
 import java.util.regex.Pattern;
 
-import static javasst.scanner.JavaSstTokenType.*;
+import static javasst.JavaSstType.*;
 
 /**
  * This class processes input provided by an {@link Input} instance.
  */
-public class JavaSstScanner extends Scanner<JavaSstToken, JavaSstTokenType> {
+public class JavaSstScanner extends Scanner<JavaSstToken, JavaSstType> {
 
     /**
      * A pattern matching digits.
@@ -51,7 +52,7 @@ public class JavaSstScanner extends Scanner<JavaSstToken, JavaSstTokenType> {
     @Override
     public JavaSstToken next() {
         stack = "";
-        JavaSstTokenType symbol = null;
+        JavaSstType symbol = null;
 
         // Skip whitespaces.
         while (current <= ' ') {

@@ -4,7 +4,7 @@ import javasst.parser.JavaSstParser;
 import javasst.parser.JavaSstParserObject;
 import javasst.scanner.JavaSstScanner;
 import javasst.scanner.JavaSstToken;
-import javasst.scanner.JavaSstTokenType;
+import javasst.JavaSstType;
 import org.apache.commons.io.FileUtils;
 import parser.Parser;
 import scanner.Input;
@@ -56,8 +56,8 @@ public class Main {
         final Input input;
         try {
             input = new Input(file);
-            final Scanner<JavaSstToken, JavaSstTokenType> scanner = new JavaSstScanner(input);
-            Parser<JavaSstToken, JavaSstTokenType, JavaSstParserObject, JavaSstNode> parser = new JavaSstParser(scanner);
+            final Scanner<JavaSstToken, JavaSstType> scanner = new JavaSstScanner(input);
+            Parser<JavaSstToken, JavaSstType, JavaSstParserObject, JavaSstNode> parser = new JavaSstParser(scanner);
 
             Ast<JavaSstNode> ast = parser.parse();
             FileUtils.writeStringToFile(AST, ast.toString(), StandardCharsets.UTF_8);

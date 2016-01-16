@@ -10,35 +10,29 @@ import java.util.Optional;
  * TODO: Add handling for constants.
  *
  * @param <C> The {@link Node}s class enumeration.
- * @param <S> The {@link Node}s subclass enumeration.
  * @param <T> The {@link Node}s type enumeration.
  */
-public abstract class Node<C extends Enum, S extends Enum, T extends Enum> {
+public abstract class Node<C extends Enum, T extends Enum> {
 
     /**
      * The left {@link Node}.
      */
-    private Optional<Node<C, S, T>> left;
+    private Optional<Node<C, T>> left;
 
     /**
      * The right {@link Node}.
      */
-    private Optional<Node<C, S, T>> right;
+    private Optional<Node<C, T>> right;
 
     /**
      * The link {@link Node}.
      */
-    private Optional<Node<C, S, T>> link;
+    private Optional<Node<C, T>> link;
 
     /**
      * The type.
      */
     private C clazz;
-
-    /**
-     * The subtype.
-     */
-    private S subclass;
 
     /**
      * The type.
@@ -71,7 +65,7 @@ public abstract class Node<C extends Enum, S extends Enum, T extends Enum> {
      *
      * @return The left {@link Node}.
      */
-    public Optional<Node<C, S, T>> getLeft() {
+    public Optional<Node<C, T>> getLeft() {
         return left;
     }
 
@@ -80,8 +74,8 @@ public abstract class Node<C extends Enum, S extends Enum, T extends Enum> {
      *
      * @param left The left.
      */
-    public void setLeft(Node<C, S, T> left) {
-        this.left = Optional.of(left);
+    public void setLeft(Node<C, T> left) {
+        this.left = Optional.ofNullable(left);
     }
 
     /**
@@ -89,7 +83,7 @@ public abstract class Node<C extends Enum, S extends Enum, T extends Enum> {
      *
      * @return The right {@link Node}.
      */
-    public Optional<Node<C, S, T>> getRight() {
+    public Optional<Node<C, T>> getRight() {
         return right;
     }
 
@@ -98,8 +92,8 @@ public abstract class Node<C extends Enum, S extends Enum, T extends Enum> {
      *
      * @param right The right {@link Node}.
      */
-    public void setRight(Node<C, S, T> right) {
-        this.right = Optional.of(right);
+    public void setRight(Node<C, T> right) {
+        this.right = Optional.ofNullable(right);
     }
 
     /**
@@ -107,7 +101,7 @@ public abstract class Node<C extends Enum, S extends Enum, T extends Enum> {
      *
      * @return The link {@link Node}.
      */
-    public Optional<Node<C, S, T>> getLink() {
+    public Optional<Node<C, T>> getLink() {
         return link;
     }
 
@@ -116,8 +110,8 @@ public abstract class Node<C extends Enum, S extends Enum, T extends Enum> {
      *
      * @param link The link {@link Node}.
      */
-    public void setLink(Node<C, S, T> link) {
-        this.link = Optional.of(link);
+    public void setLink(Node<C, T> link) {
+        this.link = Optional.ofNullable(link);
     }
 
     /**
@@ -136,24 +130,6 @@ public abstract class Node<C extends Enum, S extends Enum, T extends Enum> {
      */
     public void setClazz(C clazz) {
         this.clazz = clazz;
-    }
-
-    /**
-     * Get the subclass.
-     *
-     * @return The subclass.
-     */
-    public S getSubclass() {
-        return subclass;
-    }
-
-    /**
-     * Set the subclass.
-     *
-     * @param subclass The subclass.
-     */
-    public void setSubclass(S subclass) {
-        this.subclass = subclass;
     }
 
     /**
@@ -216,14 +192,15 @@ public abstract class Node<C extends Enum, S extends Enum, T extends Enum> {
      * @return The dot representation of this Node.
      */
     public String toDot(final String name) {
+        final String cl = clazz == null ? "-" : clazz.toString();
+        final String t = type == null ? "-" : type.toString();
         final String o = object.isPresent() ? object.get().getIdentifier() : "-";
-        final String c = constant.isPresent() ? constant.get().toString() : "-";
+        final String co = constant.isPresent() ? constant.get().toString() : "-";
 
-        return "\"" + name + "\" [shape=record, label=\"{" + "<class> " + clazz + " | " +
-                "<subclass> " + subclass + " | " +
-                "<type> " + type + " | " +
+        return "\"" + name + "\" [shape=record, label=\"{" + "<class> " + cl + " | " +
+                "<type> " + t + " | " +
                 "<object> " + o + " | " +
-                "<constant> " + c +
+                "<constant> " + co +
                 "}\"];";
     }
 }

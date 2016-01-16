@@ -7,6 +7,7 @@ import scanner.Token;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -18,7 +19,7 @@ import java.util.logging.Logger;
  * @param <O> The {@link SymbolTable}s members type.
  * @param <N> The {@link Node}s type.
  */
-public abstract class Parser<T extends Token<E>, E extends Enum, O extends ParserObject, N extends Node<?, ?, ?>> {
+public abstract class Parser<T extends Token<E>, E extends Enum, O extends ParserObject, N extends Node<?, ?>> {
 
     /**
      * The logger.
@@ -157,9 +158,9 @@ public abstract class Parser<T extends Token<E>, E extends Enum, O extends Parse
          *
          * @param function The function.
          */
-        public void optional(final Runnable function) {
+        public void optional(final Consumer<T> function) {
             if (expected.contains(token.getType())) {
-                function.run();
+                function.accept(token);
             }
         }
 

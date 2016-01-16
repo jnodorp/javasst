@@ -1,8 +1,6 @@
 package javasst.scanner;
 
-import javasst.scanner.JavaSstScanner;
-import javasst.scanner.JavaSstToken;
-import javasst.scanner.JavaSstTokenType;
+import javasst.JavaSstType;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -11,7 +9,7 @@ import scanner.Scanner;
 
 import java.io.File;
 
-import static javasst.scanner.JavaSstTokenType.*;
+import static javasst.JavaSstType.*;
 import static org.junit.Assert.assertEquals;
 
 /**
@@ -28,7 +26,7 @@ public class JavaSstScannerTest {
     /**
      * The scanner under test.
      */
-    private Scanner<JavaSstToken, JavaSstTokenType> scanner;
+    private Scanner<JavaSstToken, JavaSstType> scanner;
 
     @Before
     public void setUp() throws Exception {

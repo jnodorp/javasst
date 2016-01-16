@@ -1,13 +1,9 @@
 package javasst.parser;
 
 import ast.Ast;
-import ast.Node;
+import javasst.JavaSstType;
 import javasst.ast.JavaSstNode;
-import javasst.ast.JavaSstNodeClass;
-import javasst.ast.JavaSstNodeSubclass;
-import javasst.ast.JavaSstNodeType;
 import javasst.scanner.JavaSstToken;
-import javasst.scanner.JavaSstTokenType;
 import parser.Parser;
 import parser.SymbolTable;
 import scanner.Scanner;
@@ -19,12 +15,13 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static javasst.scanner.JavaSstTokenType.*;
+import static ast.Ast.Position.*;
+import static javasst.JavaSstType.*;
 
 /**
  * A parser for Java SST.
  */
-public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType, JavaSstParserObject, JavaSstNode> {
+public class JavaSstParser extends Parser<JavaSstToken, JavaSstType, JavaSstParserObject, JavaSstNode> {
 
     /**
      * The logger.
@@ -36,20 +33,20 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType, JavaSs
      *
      * @param scanner The scanner.
      */
-    public JavaSstParser(final Scanner<JavaSstToken, JavaSstTokenType> scanner) {
+    public JavaSstParser(final Scanner<JavaSstToken, JavaSstType> scanner) {
         super(scanner);
         this.symbolTable = new SymbolTable<>(null);
     }
 
     /**
-     * Class: {@code class} {@link JavaSstTokenType#IDENT} {@link #classBody(JavaSstNode)}.
+     * Class: {@code class} {@link JavaSstType#IDENT} {@link #classBody()}.
      *
      * @return The class node.
      */
     private JavaSstNode clazz() {
         final JavaSstNode n = new JavaSstNode();
         final JavaSstParserObject[] o = new JavaSstParserObject[1];
-        n.setClazz(JavaSstNodeClass.CLASS);
+        n.setClazz(CLASS);
 
         ast.setRoot(n);
         scope(() -> {
@@ -57,9 +54,9 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType, JavaSs
             final JavaSstToken token = token(IDENT).once();
 
             // Create the {@link ParserObject}.
-            o[0] = new JavaSstParserObject(token, JavaSstParserObjectClass.CLASS, symbolTable);
+            o[0] = new JavaSstParserObject(token, CLASS, symbolTable);
 
-            classBody(n);
+            classBody();
         });
 
         // Add object to symbol table.
@@ -73,21 +70,17 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType, JavaSs
 
     /**
      * Class body: &#123; {@link #constant()} {@link #variableDeclaration()} {@link #functionDeclaration()} &#125;.
-     *
-     * @param classNode The class node.
      */
-    private void classBody(final JavaSstNode classNode) {
+    private void classBody() {
         token(CURLY_BRACE_OPEN).once();
-        token(FINAL).repeat(() -> {
-            ast.insert(constant(), Ast.Position.LEFT, Ast.Position.LINK);
-        });
+        token(FINAL).repeat(() -> ast.insert(constant(), LEFT, LINK));
         token(first("variable_declaration")).repeat(this::variableDeclaration);
-        token(first("function_declaration")).repeat(this::functionDeclaration);
+        token(first("function_declaration")).repeat(() -> ast.insert(functionDeclaration(), RIGHT, LINK));
         token(CURLY_BRACE_CLOSE).once();
     }
 
     /**
-     * Constant: {@code final} {@link #type()} {@link JavaSstTokenType#IDENT} {@code =} {@link JavaSstTokenType#NUMBER}
+     * Constant: {@code final} {@link #type()} {@link JavaSstType#IDENT} {@code =} {@link JavaSstType#NUMBER}
      * {@code ;}.
      * <p>
      * TODO: Add handling for non integer constants.
@@ -103,54 +96,48 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType, JavaSs
         token(SEMICOLON).once();
 
         // Create the object.
-        final JavaSstParserObject object = new JavaSstParserObject(token, JavaSstParserObjectClass.CONSTANT);
+        final JavaSstParserObject object = new JavaSstParserObject(token, CONSTANT);
         object.setIntValue(integerValue);
-        object.setType(JavaSstParserObjectType.INTEGER);
+        object.setType(INTEGER);
         symbolTable.add(object);
 
         // Create the node.
         final JavaSstNode node = new JavaSstNode();
-        node.setClazz(JavaSstNodeClass.CONSTANT);
+        node.setClazz(CONSTANT);
         node.setObject(object);
-        node.setType(JavaSstNodeType.INTEGER);
+        node.setType(INTEGER);
+        node.setConstant(integerValue);
         return node;
     }
 
     /**
-     * Variable declaration: {@link #type()} {@link JavaSstTokenType#IDENT} {@code ;}.
+     * Variable declaration: {@link #type()} {@link JavaSstType#IDENT} {@code ;}.
      * <p>
      * TODO: Add handling for non integer variable declarations.
      */
-    private JavaSstNode variableDeclaration() {
+    private void variableDeclaration() {
         // Verify syntax.
         type();
         final JavaSstToken token = token(IDENT).once();
         token(SEMICOLON).once();
 
         // Build symbol table entry.
-        JavaSstParserObject p = new JavaSstParserObject(token, JavaSstParserObjectClass.VARIABLE);
-        try {
-            symbolTable.add(p);
-        } catch (SymbolTable.SymbolAlreadyExists symbolAlreadyExists) {
-            LOGGER.log(Level.SEVERE, "Identifier already used.", symbolAlreadyExists);
-            System.exit(symbolAlreadyExists.hashCode());
-        }
-
-        // Build AST node.
-        JavaSstNode n = new JavaSstNode();
-        n.setClazz(JavaSstNodeClass.VARIABLE);
-        n.setObject(p);
-        n.setType(JavaSstNodeType.INTEGER);
-        return n;
+        final JavaSstParserObject object = new JavaSstParserObject(token, VARIABLE);
+        object.setType(INTEGER);
+        symbolTable.add(object);
     }
 
     /**
-     * Function declaration: {@code public} ... {@link JavaSstTokenType#IDENT} ...
+     * Function declaration: {@code public} ... {@link JavaSstType#IDENT} ...
      * <p>
      * TODO: Finish documentation.
      * TODO: Add handling for non integer function declarations.
      */
-    private void functionDeclaration() {
+    private JavaSstNode functionDeclaration() {
+        // Build AST.
+        JavaSstNode n = new JavaSstNode();
+        n.setClazz(FUNCTION);
+
         // Verify syntax.
         token(PUBLIC).once();
         final JavaSstToken t = token;
@@ -174,27 +161,23 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType, JavaSs
             token(CURLY_BRACE_OPEN).once();
             token(first("variable_declaration")).repeat(this::variableDeclaration);
 
-            statementSequence();
+            n.setRight(statementSequence());
             token(CURLY_BRACE_CLOSE).once();
         });
 
         // Build symbol table.
         @SuppressWarnings("unchecked")
-        JavaSstParserObject p = new JavaSstParserObject(token, JavaSstParserObjectClass.FUNCTION, st[0]);
-        p.setType(JavaSstParserObjectType.INTEGER);
-
-        // Build AST.
-        JavaSstNode n = new JavaSstNode();
-        n.setClazz(JavaSstNodeClass.FUNCTION);
+        JavaSstParserObject p = new JavaSstParserObject(token, FUNCTION, st[0]);
+        p.setType(INTEGER);
 
         switch (type) {
             case "void":
-                p.setType(JavaSstParserObjectType.VOID);
-                n.setType(JavaSstNodeType.VOID);
+                p.setType(VOID);
+                n.setType(VOID);
                 break;
             case "int":
-                p.setType(JavaSstParserObjectType.INTEGER);
-                n.setType(JavaSstNodeType.INTEGER);
+                p.setType(INTEGER);
+                n.setType(INTEGER);
                 break;
             default:
                 LOGGER.log(Level.SEVERE, "Unknown return type " + t.toString());
@@ -209,17 +192,7 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType, JavaSs
             System.exit(symbolAlreadyExists.hashCode());
         }
 
-        // Add node to the right of root.
-        if (ast.getRoot().getRight().isPresent()) {
-            Node<JavaSstNodeClass, JavaSstNodeSubclass, JavaSstNodeType> parent = ast.getRoot().getLeft().get();
-            while (parent.getLink().isPresent()) {
-                parent = parent.getLink().get();
-            }
-
-            parent.setLink(n);
-        } else {
-            ast.getRoot().setRight(n);
-        }
+        return n;
     }
 
     /**
@@ -229,13 +202,13 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType, JavaSs
         token(PARENTHESIS_OPEN).once();
 
         List<JavaSstParserObject> parameters = new LinkedList<>();
-        token(first("fp_section")).optional(() -> {
+        token(first("fp_section")).optional(x -> {
             type();
             JavaSstToken token = token(IDENT).once();
 
             // Build symbol table.
-            JavaSstParserObject parameter = new JavaSstParserObject(token, JavaSstParserObjectClass.PARAMETER);
-            parameter.setType(JavaSstParserObjectType.INTEGER);
+            JavaSstParserObject parameter = new JavaSstParserObject(token, PARAMETER);
+            parameter.setType(INTEGER);
             parameters.add(parameter);
 
             token(COMMA).repeat(() -> {
@@ -244,8 +217,8 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType, JavaSs
                 final JavaSstToken t = token(IDENT).once();
 
                 // Build symbol table.
-                final JavaSstParserObject p = new JavaSstParserObject(t, JavaSstParserObjectClass.PARAMETER);
-                p.setType(JavaSstParserObjectType.INTEGER);
+                final JavaSstParserObject p = new JavaSstParserObject(t, PARAMETER);
+                p.setType(INTEGER);
                 parameters.add(p);
             });
         });
@@ -255,12 +228,30 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType, JavaSs
         return parameters;
     }
 
-    private void statementSequence() {
-        statement();
-        token(first("statement")).repeat(this::statement);
+    private JavaSstNode statementSequence() {
+        final JavaSstNode node = statement();
+        final List<JavaSstNode> nodes = new LinkedList<>();
+        token(first("statement")).repeat(() -> nodes.add(statement()));
+
+        // Chain statement nodes.
+        JavaSstNode current = node;
+        for (JavaSstNode n : nodes) {
+            current.setLink(n);
+            current = n;
+        }
+
+        return node;
     }
 
-    private void statement() {
+    /**
+     * TODO: Handle non integer assignments.
+     *
+     * @return TODO: Documentation.
+     */
+    private JavaSstNode statement() {
+        final JavaSstNode node = new JavaSstNode();
+        final JavaSstToken t = token;
+
         // Could be an assignment or a function call.
         if (IDENT == token.getType()) {
             next();
@@ -270,20 +261,30 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType, JavaSs
                 token(SEMICOLON).once();
             } else if (EQUALS == token.getType()) {
                 token(EQUALS).once();
-                expression();
+                node.setClazz(ASSIGNMENT);
+                node.setType(INTEGER);
+
+                JavaSstNode left = new JavaSstNode();
+                left.setClazz(VARIABLE);
+                left.setObject(symbolTable.object(t.getIdentifier()).orElseThrow(UnknownError::new));
+                node.setLeft(left);
+                node.setRight(expression());
                 token(SEMICOLON).once();
+                return node;
             } else {
                 error(PARENTHESIS_OPEN, EQUALS);
             }
         } else if (first("if_statement").contains(token.getType())) {
             ifStatement();
         } else if (first("while_statement").contains(token.getType())) {
-            whileStatement();
+            return whileStatement();
         } else if (first("return_statement").contains(token.getType())) {
-            returnStatement();
+            return returnStatement();
         } else {
             error(IDENT, IF, WHILE, RETURN);
         }
+
+        return null;
     }
 
     private void type() {
@@ -304,25 +305,45 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType, JavaSs
         token(CURLY_BRACE_CLOSE).once();
     }
 
-    private void whileStatement() {
+    private JavaSstNode whileStatement() {
         token(WHILE).once();
+        JavaSstNode node = new JavaSstNode();
+        node.setClazz(WHILE);
+
         token(PARENTHESIS_OPEN).once();
-        expression();
+        node.setLeft(expression());
         token(PARENTHESIS_CLOSE).once();
+
         token(CURLY_BRACE_OPEN).once();
-        statementSequence();
+        node.setRight(statementSequence());
         token(CURLY_BRACE_CLOSE).once();
+
+        return node;
     }
 
-    private void returnStatement() {
+    /**
+     * TODO: Handle non integer and void return types.
+     *
+     * @return TODO: Documentation.
+     */
+    private JavaSstNode returnStatement() {
         token(RETURN).once();
-        token(first("simple_expression")).optional(this::simpleExpression);
+        JavaSstNode node = new JavaSstNode();
+        node.setClazz(RETURN);
+        node.setType(VOID);
+
+        token(first("simple_expression")).optional(x -> {
+            node.setLeft(simpleExpression());
+            node.setType(INTEGER);
+        });
         token(SEMICOLON).once();
+
+        return node;
     }
 
     private void actualParameters() {
         token(PARENTHESIS_OPEN).once();
-        token(first("expression")).optional(() -> {
+        token(first("expression")).optional(x -> {
             expression();
             token(COMMA).repeat(() -> {
                 token(COMMA).once();
@@ -333,56 +354,128 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType, JavaSs
         token(PARENTHESIS_CLOSE).once();
     }
 
-    private void expression() {
-        simpleExpression();
-        token(EQUALS_EQUALS, GREATER_THAN, GREATER_THAN_EQUALS, LESS_THAN, LESS_THAN_EQUALS).optional(() -> {
+    private JavaSstNode expression() {
+        final JavaSstNode node = simpleExpression();
+        final JavaSstNode parent = new JavaSstNode();
+        token(EQUALS_EQUALS, GREATER_THAN, GREATER_THAN_EQUALS, LESS_THAN, LESS_THAN_EQUALS).optional(token -> {
             next();
-            simpleExpression();
+            parent.setClazz(token.getType());
+            parent.setRight(simpleExpression());
         });
-    }
 
-    private void simpleExpression() {
-        term();
-        token(PLUS, MINUS).repeat(() -> {
-            next();
-            term();
-        });
-    }
-
-    private void term() {
-        factor();
-        token(TIMES, SLASH).repeat(() -> {
-            next();
-            factor();
-        });
-    }
-
-    private void factor() {
-        final JavaSstNode node = new JavaSstNode();
-
-        if (IDENT == token.getType()) {
-            final String identifier = token.getIdentifier();
-            next();
-
-            // Could be an internal function call.
-            if (PARENTHESIS_OPEN == token.getType()) {
-                actualParameters();
-            } else {
-                node.setClazz(JavaSstNodeClass.VARIABLE);
-                JavaSstParserObject o = symbolTable.object(identifier).orElseThrow(UnknownError::new);
-                node.setObject(o);
-            }
-        } else if (NUMBER == token.getType()) {
-            node.setClazz(JavaSstNodeClass.NUMBER);
-            node.setConstant(Integer.parseInt(token.getIdentifier()));
-            next();
-        } else if (PARENTHESIS_OPEN == token.getType()) {
-            next();
-            expression();
-            token(PARENTHESIS_CLOSE).once();
-        } else {
-            error(IDENT, NUMBER, PARENTHESIS_OPEN);
+        if (parent.getClazz() != null) {
+            parent.setLeft(node);
+            return parent;
         }
+
+        return node;
+    }
+
+    /**
+     * TODO: Handle concatenated expressions.
+     *
+     * @return TODO: Documentation.
+     */
+    private JavaSstNode simpleExpression() {
+        final JavaSstNode node = term();
+        final JavaSstNode parent = new JavaSstNode();
+        token(PLUS, MINUS).repeat(() -> {
+            switch (token.getType()) {
+                case PLUS:
+                    parent.setClazz(PLUS);
+                    next();
+                    parent.setRight(term());
+                    break;
+                case MINUS:
+                    parent.setClazz(MINUS);
+                    next();
+                    parent.setRight(term());
+                    break;
+                default:
+                    error(PLUS, MINUS);
+            }
+        });
+
+        if (parent.getClazz() != null) {
+            parent.setLeft(node);
+            return parent;
+        }
+
+        return node;
+    }
+
+    /**
+     * TODO: Handle concatenated terms.
+     *
+     * @return TODO: Documentation.
+     */
+    private JavaSstNode term() {
+        final JavaSstNode node = factor();
+        final JavaSstNode parent = new JavaSstNode();
+
+        token(TIMES, SLASH).repeat(() -> {
+            switch (token.getType()) {
+                case TIMES:
+                    parent.setClazz(TIMES);
+                    next();
+                    parent.setRight(factor());
+                    break;
+                case SLASH:
+                    parent.setClazz(SLASH);
+                    next();
+                    parent.setRight(factor());
+                    break;
+                default:
+                    error(TIMES, SLASH);
+            }
+        });
+
+        if (parent.getClazz() != null) {
+            parent.setLeft(node);
+            return parent;
+        }
+
+        return node;
+    }
+
+    /**
+     * TODO: Handle non integer numbers and variables.
+     *
+     * @return TODO: Documentation.
+     */
+    private JavaSstNode factor() {
+        JavaSstNode node = new JavaSstNode();
+        switch (token.getType()) {
+            case IDENT:
+                final String identifier = token.getIdentifier();
+                next();
+
+                // Could be an internal function call.
+                if (PARENTHESIS_OPEN == token.getType()) {
+                    actualParameters();
+                } else {
+                    node.setClazz(VARIABLE);
+                    node.setType(INTEGER);
+                    JavaSstParserObject o = symbolTable.object(identifier).orElseThrow(UnknownError::new);
+                    node.setObject(o);
+                }
+                break;
+            case NUMBER:
+                node.setClazz(NUMBER);
+                node.setType(INTEGER);
+                node.setConstant(Integer.parseInt(token.getIdentifier()));
+                next();
+                break;
+            case PARENTHESIS_OPEN:
+                next();
+                node = expression();
+                token(PARENTHESIS_CLOSE).once();
+                break;
+            default:
+                error(IDENT, NUMBER, PARENTHESIS_OPEN);
+        }
+
+        return node;
     }
 
     @Override
@@ -400,18 +493,18 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType, JavaSs
      * @param expected A list of expected tokens.
      * @see #error(List)
      */
-    private void error(JavaSstTokenType... expected) {
+    private void error(JavaSstType... expected) {
         error(Arrays.asList(expected));
     }
 
     /**
-     * Get all possible first {@link JavaSstTokenType} of the construct c.
+     * Get all possible first {@link JavaSstType} of the construct c.
      *
      * @param c The construct.
      * @return The possible first token types of c.
      */
-    private List<JavaSstTokenType> first(String c) {
-        final ArrayList<JavaSstTokenType> result = new ArrayList<>();
+    private List<JavaSstType> first(String c) {
+        final ArrayList<JavaSstType> result = new ArrayList<>();
 
         switch (c) {
             case "type":

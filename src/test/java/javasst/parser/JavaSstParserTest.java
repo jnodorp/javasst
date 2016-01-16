@@ -1,14 +1,9 @@
 package javasst.parser;
 
-import ast.Ast;
 import javasst.ast.JavaSstNode;
-import javasst.parser.JavaSstParser;
-import javasst.parser.JavaSstParserObject;
-import javasst.parser.JavaSstParserObjectClass;
-import javasst.parser.JavaSstParserObjectType;
 import javasst.scanner.JavaSstScanner;
 import javasst.scanner.JavaSstToken;
-import javasst.scanner.JavaSstTokenType;
+import javasst.JavaSstType;
 import org.junit.Test;
 import org.mockito.internal.util.reflection.Whitebox;
 import parser.Parser;
@@ -28,8 +23,8 @@ public class JavaSstParserTest {
     @Test
     public void testParse() throws Exception {
         final Input input = new Input("src/test/resources/test.sst");
-        final Scanner<JavaSstToken, JavaSstTokenType> scanner = new JavaSstScanner(input);
-        Parser<JavaSstToken, JavaSstTokenType, JavaSstParserObject, JavaSstNode> parser = new JavaSstParser(scanner);
+        final Scanner<JavaSstToken, JavaSstType> scanner = new JavaSstScanner(input);
+        Parser<JavaSstToken, JavaSstType, JavaSstParserObject, JavaSstNode> parser = new JavaSstParser(scanner);
 
         parser.parse();
     }
@@ -37,7 +32,7 @@ public class JavaSstParserTest {
     @Test(expected = Exception.class)
     public void testError() throws FileNotFoundException {
         final Input input = new Input("src/test/resources/error_test.sst");
-        final Scanner<JavaSstToken, JavaSstTokenType> scanner = new JavaSstScanner(input);
+        final Scanner<JavaSstToken, JavaSstType> scanner = new JavaSstScanner(input);
         Parser parser = new JavaSstParser(scanner);
 
         parser.parse();
@@ -46,7 +41,7 @@ public class JavaSstParserTest {
     @Test
     public void testSymbolTable() throws FileNotFoundException {
         final Input input = new Input("src/test/resources/table_test.sst");
-        final Scanner<JavaSstToken, JavaSstTokenType> scanner = new JavaSstScanner(input);
+        final Scanner<JavaSstToken, JavaSstType> scanner = new JavaSstScanner(input);
         JavaSstParser parser = new JavaSstParser(scanner);
 
         parser.parse();
@@ -63,7 +58,7 @@ public class JavaSstParserTest {
         JavaSstParserObject a = root.object("A").get();
         assertEquals(1, a.getFunctionDeclarations().size());
         assertEquals("f", a.getFunctionDeclarations().get(0).getIdentifier());
-        assertEquals(JavaSstParserObjectClass.CLASS, a.getObjectClass());
+        assertEquals(JavaSstType.CLASS, a.getObjectClass());
         assertNotNull(a.getSymbolTable());
         assertEquals(1, a.getVariableDefinitions().size());
         assertEquals("y", a.getVariableDefinitions().get(0).getIdentifier());
@@ -71,8 +66,8 @@ public class JavaSstParserTest {
         JavaSstParserObject b = a.getSymbolTable().object("b").get();
         assertEquals("b", b.getIdentifier());
         assertEquals(3, b.getIntValue());
-        assertEquals(JavaSstParserObjectClass.CONSTANT, b.getObjectClass());
-        assertEquals(JavaSstParserObjectType.INTEGER, b.getParserType());
+        assertEquals(JavaSstType.CONSTANT, b.getObjectClass());
+        assertEquals(JavaSstType.INTEGER, b.getParserType());
 
         JavaSstParserObject f = a.getSymbolTable().object("f").get();
         assertEquals("f", f.getIdentifier());
@@ -82,7 +77,7 @@ public class JavaSstParserTest {
 
         JavaSstParserObject x = f.getSymbolTable().object("x").get();
         assertEquals("x", x.getIdentifier());
-        assertEquals(JavaSstParserObjectType.INTEGER, x.getParserType());
+        assertEquals(JavaSstType.INTEGER, x.getParserType());
         assertNotNull(f.getSymbolTable());
     }
 }

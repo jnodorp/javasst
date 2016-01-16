@@ -91,6 +91,6 @@ public class AstTest {
 
     private enum T {}
 
-    private class TestNode extends Node<C, S, T> {
+    private class TestNode extends Node<C, T> {
     }
 }

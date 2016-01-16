@@ -1,5 +1,6 @@
 package javasst.parser;
 
+import javasst.JavaSstType;
 import javasst.scanner.JavaSstToken;
 import parser.SymbolTable;
 import scanner.Token;
@@ -24,14 +25,14 @@ public class JavaSstParserObject implements parser.ParserObject {
     private final SymbolTable<JavaSstParserObject> symbolTable;
 
     /**
-     * The {@link JavaSstParserObjectClass}.
+     * The class.
      */
-    private final JavaSstParserObjectClass objectClass;
+    private final JavaSstType objectClass;
 
     /**
-     * The {@link JavaSstParserObjectType}.
+     * The type.
      */
-    private JavaSstParserObjectType type;
+    private JavaSstType type;
 
     /**
      * The int value.
@@ -42,10 +43,10 @@ public class JavaSstParserObject implements parser.ParserObject {
      * Create a new {@link JavaSstParserObject} with a {@link SymbolTable}.
      *
      * @param token       The {@link JavaSstToken}.
-     * @param objectClass The {@link JavaSstParserObjectClass}.
+     * @param objectClass The class.
      * @param symbolTable The {@link SymbolTable}.
      */
-    public JavaSstParserObject(final JavaSstToken token, final JavaSstParserObjectClass objectClass, final SymbolTable<JavaSstParserObject> symbolTable) {
+    public JavaSstParserObject(final JavaSstToken token, final JavaSstType objectClass, final SymbolTable<JavaSstParserObject> symbolTable) {
         this.token = token;
         this.objectClass = objectClass;
         this.symbolTable = symbolTable;
@@ -55,9 +56,9 @@ public class JavaSstParserObject implements parser.ParserObject {
      * Create a new {@link JavaSstParserObject}.
      *
      * @param token       The {@link JavaSstToken}.
-     * @param objectClass The {@link JavaSstParserObjectClass}.
+     * @param objectClass The class.
      */
-    public JavaSstParserObject(final JavaSstToken token, final JavaSstParserObjectClass objectClass) {
+    public JavaSstParserObject(final JavaSstToken token, final JavaSstType objectClass) {
         this(token, objectClass, null);
     }
 
@@ -72,29 +73,29 @@ public class JavaSstParserObject implements parser.ParserObject {
     }
 
     /**
-     * Get the {@link JavaSstParserObjectClass}.
+     * Get the {@link JavaSstType}.
      *
-     * @return The {@link JavaSstParserObjectClass}.
+     * @return The {@link JavaSstType}.
      */
-    public JavaSstParserObjectClass getObjectClass() {
+    public JavaSstType getObjectClass() {
         return objectClass;
     }
 
     /**
-     * Get the {@link JavaSstParserObjectType}.
+     * Get the {@link JavaSstType}.
      *
-     * @return The {@link JavaSstParserObjectType}.
+     * @return The {@link JavaSstType}.
      */
-    public JavaSstParserObjectType getParserType() {
+    public JavaSstType getParserType() {
         return type;
     }
 
     /**
-     * Set the {@link JavaSstParserObjectType}.
+     * Set the {@link JavaSstType}.
      *
-     * @param type The {@link JavaSstParserObjectType}.
+     * @param type The {@link JavaSstType}.
      */
-    public void setType(final JavaSstParserObjectType type) {
+    public void setType(final JavaSstType type) {
         this.type = type;
     }
 
@@ -104,10 +105,10 @@ public class JavaSstParserObject implements parser.ParserObject {
      * @return The {@link SymbolTable}.
      */
     public SymbolTable<JavaSstParserObject> getSymbolTable() {
-        if (objectClass == JavaSstParserObjectClass.CLASS || objectClass == JavaSstParserObjectClass.FUNCTION) {
+        if (objectClass == JavaSstType.CLASS || objectClass == JavaSstType.FUNCTION) {
             return symbolTable;
         } else {
-            throw new ObjectClassException(JavaSstParserObjectClass.CLASS, JavaSstParserObjectClass.FUNCTION);
+            throw new ObjectClassException(JavaSstType.CLASS, JavaSstType.FUNCTION);
         }
     }
 
@@ -117,10 +118,10 @@ public class JavaSstParserObject implements parser.ParserObject {
      * @return The function declarations.
      */
     public List<JavaSstParserObject> getFunctionDeclarations() {
-        if (objectClass == JavaSstParserObjectClass.CLASS) {
-            return symbolTable.getObjects().stream().filter(o -> JavaSstParserObjectClass.FUNCTION == o.getObjectClass()).collect(Collectors.toList());
+        if (objectClass == JavaSstType.CLASS) {
+            return symbolTable.getObjects().stream().filter(o -> JavaSstType.FUNCTION == o.getObjectClass()).collect(Collectors.toList());
         } else {
-            throw new ObjectClassException(JavaSstParserObjectClass.CLASS);
+            throw new ObjectClassException(JavaSstType.CLASS);
         }
     }
 
@@ -130,10 +131,10 @@ public class JavaSstParserObject implements parser.ParserObject {
      * @return The variable definitions.
      */
     public List<JavaSstParserObject> getVariableDefinitions() {
-        if (objectClass == JavaSstParserObjectClass.CLASS) {
-            return symbolTable.getObjects().stream().filter(o -> JavaSstParserObjectClass.VARIABLE == o.getObjectClass()).collect(Collectors.toList());
+        if (objectClass == JavaSstType.CLASS) {
+            return symbolTable.getObjects().stream().filter(o -> JavaSstType.VARIABLE == o.getObjectClass()).collect(Collectors.toList());
         } else {
-            throw new ObjectClassException(JavaSstParserObjectClass.CLASS);
+            throw new ObjectClassException(JavaSstType.CLASS);
         }
     }
 
@@ -143,10 +144,10 @@ public class JavaSstParserObject implements parser.ParserObject {
      * @return The integer value.
      */
     public int getIntValue() {
-        if (objectClass == JavaSstParserObjectClass.CONSTANT) {
+        if (objectClass == JavaSstType.CONSTANT) {
             return intValue;
         } else {
-            throw new ObjectClassException(JavaSstParserObjectClass.CONSTANT);
+            throw new ObjectClassException(JavaSstType.CONSTANT);
         }
     }
 
@@ -156,10 +157,10 @@ public class JavaSstParserObject implements parser.ParserObject {
      * @param intValue The int value.
      */
     public void setIntValue(int intValue) {
-        if (objectClass == JavaSstParserObjectClass.CONSTANT) {
+        if (objectClass == JavaSstType.CONSTANT) {
             this.intValue = intValue;
         } else {
-            throw new ObjectClassException(JavaSstParserObjectClass.CONSTANT);
+            throw new ObjectClassException(JavaSstType.CONSTANT);
         }
     }
 
@@ -169,10 +170,10 @@ public class JavaSstParserObject implements parser.ParserObject {
      * @return The parameter list.
      */
     public List<JavaSstParserObject> getParameterList() {
-        if (objectClass == JavaSstParserObjectClass.FUNCTION) {
-            return symbolTable.getObjects().stream().filter(o -> JavaSstParserObjectClass.PARAMETER == o.getObjectClass()).collect(Collectors.toList());
+        if (objectClass == JavaSstType.FUNCTION) {
+            return symbolTable.getObjects().stream().filter(o -> JavaSstType.PARAMETER == o.getObjectClass()).collect(Collectors.toList());
         } else {
-            throw new ObjectClassException(JavaSstParserObjectClass.FUNCTION);
+            throw new ObjectClassException(JavaSstType.FUNCTION);
         }
     }
 
@@ -181,11 +182,11 @@ public class JavaSstParserObject implements parser.ParserObject {
      *
      * @return The result.
      */
-    public JavaSstParserObjectType getResult() {
-        if (objectClass == JavaSstParserObjectClass.FUNCTION) {
+    public JavaSstType getResult() {
+        if (objectClass == JavaSstType.FUNCTION) {
             return null; // FIXME
         } else {
-            throw new ObjectClassException(JavaSstParserObjectClass.FUNCTION);
+            throw new ObjectClassException(JavaSstType.FUNCTION);
         }
     }
 
@@ -195,16 +196,16 @@ public class JavaSstParserObject implements parser.ParserObject {
     }
 
     /**
-     * Exception thrown if a wrong {@link JavaSstParserObjectClass} has been assumed.
+     * Exception thrown if a wrong {@link JavaSstType} has been assumed.
      */
     public class ObjectClassException extends RuntimeException {
 
         /**
          * Create a new {@link ObjectClassException}.
          *
-         * @param expected The {@link JavaSstParserObjectClass}es that would have been valid.
+         * @param expected The {@link JavaSstType}es that would have been valid.
          */
-        public ObjectClassException(final JavaSstParserObjectClass... expected) {
+        public ObjectClassException(final JavaSstType... expected) {
             super("Expected class of " + Arrays.toString(expected) + " but was " + objectClass);
         }
     }

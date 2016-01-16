@@ -7,7 +7,7 @@ import java.util.function.Consumer;
 /**
  * The abstract syntax tree (AST).
  */
-public final class Ast<N extends Node<?, ?, ?>> {
+public final class Ast<N extends Node<?, ?>> {
 
     /**
      * The root.
@@ -20,7 +20,7 @@ public final class Ast<N extends Node<?, ?, ?>> {
      * @param node     The {@link Node}.
      * @param consumer The {@link Consumer} acting on the {@link Node}.
      */
-    private static void traverse(Node<?, ?, ?> node, final Consumer<Node<?, ?, ?>> consumer) {
+    private static void traverse(Node<?, ?> node, final Consumer<Node<?, ?>> consumer) {
         while (node != null) {
             if (node.getLeft().isPresent()) {
                 traverse(node.getLeft().get(), consumer);
@@ -65,8 +65,7 @@ public final class Ast<N extends Node<?, ?, ?>> {
      * @param placement The placement array.
      */
     @SuppressWarnings("unchecked")
-    public void insert(final Node node, final Position... placement) {
-        Node<?, ?, ?> parent = root;
+    public void insertAfter(Node<?, ?> parent, final Node node, final Position... placement) {
         for (Position position : placement) {
             switch (position) {
                 case LEFT:
@@ -96,7 +95,7 @@ public final class Ast<N extends Node<?, ?, ?>> {
             }
         }
 
-        switch (placement[placement.length]) {
+        switch (placement[placement.length - 1]) {
             case LEFT:
                 while (parent.getLeft().isPresent()) {
                     parent = parent.getLeft().get();
@@ -121,17 +120,28 @@ public final class Ast<N extends Node<?, ?, ?>> {
     }
 
     /**
+     * Insert a node at the given position.
+     *
+     * @param node      The node.
+     * @param placement The placement array.
+     */
+    @SuppressWarnings("unchecked")
+    public void insert(final Node node, final Position... placement) {
+        insertAfter(root, node, placement);
+    }
+
+    /**
      * Traverse the {@link Ast}.
      *
      * @param consumer The consumer getting the {@link Node}s.
      */
-    public void traverse(final Consumer<Node<?, ?, ?>> consumer) {
+    public void traverse(final Consumer<Node<?, ?>> consumer) {
         traverse(root, consumer);
     }
 
     @Override
     public String toString() {
-        final List<Node<?, ?, ?>> nodes = new ArrayList<>();
+        final List<Node<?, ?>> nodes = new ArrayList<>();
 
         // Prepare string with node definitions.
         final StringBuilder result = new StringBuilder("digraph AST {").append(System.lineSeparator());
