@@ -13,16 +13,16 @@ digraph AST {
 	"11" [shape=record, label="{<class> N2 | <subclass> null | <type> null | <object> - | <constant> -}"];
 	"12" [shape=record, label="{<class> N11 | <subclass> null | <type> null | <object> - | <constant> -}"];
 
-	"2" -> "0"[ label="left"];
-	"2" -> "1"[ label="right"];
-	"2" -> "3"[ label="link"];
-	"6" -> "4"[ label="left"];
-	"6" -> "5"[ label="right"];
-	"6" -> "7"[ label="link"];
-	"8" -> "2"[ label="left"];
-	"8" -> "6"[ label="right"];
-	"8" -> "11"[ label="link"];
-	"11" -> "9"[ label="left"];
-	"11" -> "10"[ label="right"];
-	"11" -> "12"[ label="link"];
+	"2" -> "0" [label="left"];
+	"2" -> "1" [label="right"];
+	"2" -> "3" [label="link"];
+	"6" -> "4" [label="left"];
+	"6" -> "5" [label="right"];
+	"6" -> "7" [label="link"];
+	"8" -> "2" [label="left"];
+	"8" -> "6" [label="right"];
+	"8" -> "11" [label="link"];
+	"11" -> "9" [label="left"];
+	"11" -> "10" [label="right"];
+	"11" -> "12" [label="link"];
 }

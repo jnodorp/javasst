@@ -85,7 +85,7 @@ public final class SymbolTable<O extends parser.ParserObject> {
     /**
      * Exception thrown when double defining symbols.
      */
-    public static final class SymbolAlreadyExists extends Exception {
+    public static final class SymbolAlreadyExists extends RuntimeException {
 
         /**
          * Create a new exception.

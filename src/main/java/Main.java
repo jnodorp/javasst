@@ -60,7 +60,7 @@ public class Main {
             Parser<JavaSstToken, JavaSstTokenType, JavaSstParserObject, JavaSstNode> parser = new JavaSstParser(scanner);
 
             Ast<JavaSstNode> ast = parser.parse();
-            FileUtils.writeStringToFile(AST, ast.toDot(), StandardCharsets.UTF_8);
+            FileUtils.writeStringToFile(AST, ast.toString(), StandardCharsets.UTF_8);
             run("dot", "-Tps", AST.toString(), "-o", PDF.toString());
             FileUtils.forceDelete(AST);
             run("evince", PDF.toString());

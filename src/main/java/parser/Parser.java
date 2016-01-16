@@ -31,6 +31,11 @@ public abstract class Parser<T extends Token<E>, E extends Enum, O extends Parse
     protected final Ast<N> ast;
 
     /**
+     * The scanner.
+     */
+    private final Scanner<T, E> scanner;
+
+    /**
      * The current token.
      */
     protected T token;
@@ -39,11 +44,6 @@ public abstract class Parser<T extends Token<E>, E extends Enum, O extends Parse
      * The symbol table.
      */
     protected SymbolTable<O> symbolTable;
-
-    /**
-     * The scanner.
-     */
-    private final Scanner<T, E> scanner;
 
     /**
      * Create a new parser.
@@ -103,50 +103,26 @@ public abstract class Parser<T extends Token<E>, E extends Enum, O extends Parse
     /**
      * Allow verifications on the current token.
      *
-     * @return A {@link Specification} object.
+     * @return A {@link TokenVerification} object.
      */
-    protected Specification token() {
-        return new Specification();
+    protected TokenVerification token(final List<E> expected) {
+        return new TokenVerification(expected);
     }
 
     /**
-     * A specification verifies, that the current {@link Token} is valid.
+     * Allow verifications on the current token.
+     *
+     * @return A {@link TokenVerification} object.
      */
-    protected class Specification {
-
-        /**
-         * Create a new specification.
-         */
-        private Specification() {
-            // Hidden constructor.
-        }
-
-        /**
-         * Add expected tokens to the specification.
-         *
-         * @param expected The expected tokens.
-         * @return A counter object t specify the number of times the tokens have to occur.
-         */
-        @SafeVarargs
-        public final Counter is(final E... expected) {
-            return is(Arrays.asList(expected));
-        }
-
-        /**
-         * Add expected {@link Token}s to the specification.
-         *
-         * @param expected The expected {@link Token}s.
-         * @return A counter object t specify the number of times the {@link Token}s have to occur.
-         */
-        public Counter is(final List<E> expected) {
-            return new Counter(expected);
-        }
+    @SafeVarargs
+    protected final TokenVerification token(final E... expected) {
+        return token(Arrays.asList(expected));
     }
 
     /**
      * As part of the specification the counter verifies the number of {@link Token}s to match.
      */
-    protected class Counter {
+    protected class TokenVerification {
 
         /**
          * The expected tokens.
@@ -158,7 +134,7 @@ public abstract class Parser<T extends Token<E>, E extends Enum, O extends Parse
          *
          * @param expected The expected {@link Token}s.
          */
-        private Counter(final List<E> expected) {
+        private TokenVerification(final List<E> expected) {
             this.expected = expected;
         }
 
@@ -177,7 +153,7 @@ public abstract class Parser<T extends Token<E>, E extends Enum, O extends Parse
         }
 
         /**
-         * If the {@link Specification} matches the current {@link Token} execute the function.
+         * If the {@link Token} matches the current {@link Token} execute the function.
          *
          * @param function The function.
          */
@@ -188,7 +164,7 @@ public abstract class Parser<T extends Token<E>, E extends Enum, O extends Parse
         }
 
         /**
-         * Repeat the function while the {@link Specification} matches the current {@link Token}.
+         * Repeat the function while the {@link Token} matches the current {@link Token}.
          *
          * @param function The function.
          */

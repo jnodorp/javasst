@@ -12,7 +12,10 @@ import parser.Parser;
 import parser.SymbolTable;
 import scanner.Scanner;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedList;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -29,11 +32,6 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType, JavaSs
     private static final Logger LOGGER = Logger.getLogger(JavaSstParser.class.getName());
 
     /**
-     * The current {@link JavaSstParserObject}.
-     */
-    private JavaSstParserObject parserObject;
-
-    /**
      * Create a new {@link Parser} based on the given scanner.
      *
      * @param scanner The scanner.
@@ -44,47 +42,48 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType, JavaSs
     }
 
     /**
-     * Class: {@code class} {@link JavaSstTokenType#IDENT} {@link #classBody()}.
+     * Class: {@code class} {@link JavaSstTokenType#IDENT} {@link #classBody(JavaSstNode)}.
      *
      * @return The class node.
      */
     private JavaSstNode clazz() {
-        JavaSstNode n = new JavaSstNode();
+        final JavaSstNode n = new JavaSstNode();
+        final JavaSstParserObject[] o = new JavaSstParserObject[1];
         n.setClazz(JavaSstNodeClass.CLASS);
 
         ast.setRoot(n);
         scope(() -> {
-            token().is(CLASS).once();
-            final JavaSstToken token = token().is(IDENT).once();
+            token(CLASS).once();
+            final JavaSstToken token = token(IDENT).once();
 
             // Create the {@link ParserObject}.
-            parserObject = new JavaSstParserObject(token, JavaSstParserObjectClass.CLASS, symbolTable);
+            o[0] = new JavaSstParserObject(token, JavaSstParserObjectClass.CLASS, symbolTable);
 
-            classBody();
+            classBody(n);
         });
 
-        try {
-            symbolTable.add(parserObject);
-        } catch (SymbolTable.SymbolAlreadyExists symbolAlreadyExists) {
-            LOGGER.log(Level.SEVERE, "Class name already used.", symbolAlreadyExists);
-            System.exit(symbolAlreadyExists.hashCode());
-        }
+        // Add object to symbol table.
+        symbolTable.add(o[0]);
 
         // Finish AST.
-        n.setObject(parserObject);
+        n.setObject(o[0]);
 
         return n;
     }
 
     /**
      * Class body: &#123; {@link #constant()} {@link #variableDeclaration()} {@link #functionDeclaration()} &#125;.
+     *
+     * @param classNode The class node.
      */
-    private void classBody() {
-        token().is(CURLY_BRACE_OPEN).once();
-        token().is(FINAL).repeat(this::constant);
-        token().is(first("variable_declaration")).repeat(this::variableDeclaration);
-        token().is(first("function_declaration")).repeat(this::functionDeclaration);
-        token().is(CURLY_BRACE_CLOSE).once();
+    private void classBody(final JavaSstNode classNode) {
+        token(CURLY_BRACE_OPEN).once();
+        token(FINAL).repeat(() -> {
+            ast.insert(constant(), Ast.Position.LEFT, Ast.Position.LINK);
+        });
+        token(first("variable_declaration")).repeat(this::variableDeclaration);
+        token(first("function_declaration")).repeat(this::functionDeclaration);
+        token(CURLY_BRACE_CLOSE).once();
     }
 
     /**
@@ -94,43 +93,27 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType, JavaSs
      * TODO: Add handling for non integer constants.
      * TODO: Add handling for calculated constants.
      */
-    private void constant() {
+    private JavaSstNode constant() {
         // Verify syntax.
-        token().is(FINAL).once();
+        token(FINAL).once();
         type();
-        final JavaSstToken token = token().is(IDENT).once();
-        token().is(EQUALS).once();
-        final int integerValue = Integer.parseInt(token().is(NUMBER).once().getIdentifier());
-        token().is(SEMICOLON).once();
+        final JavaSstToken token = token(IDENT).once();
+        token(EQUALS).once();
+        final int integerValue = Integer.parseInt(token(NUMBER).once().getIdentifier());
+        token(SEMICOLON).once();
 
-        // Build symbol table.
-        JavaSstParserObject p = new JavaSstParserObject(token, JavaSstParserObjectClass.CONSTANT);
-        p.setIntValue(integerValue);
-        p.setType(JavaSstParserObjectType.INTEGER);
-        try {
-            symbolTable.add(p);
-        } catch (SymbolTable.SymbolAlreadyExists symbolAlreadyExists) {
-            LOGGER.log(Level.SEVERE, "Constant name already used.", symbolAlreadyExists);
-            System.exit(symbolAlreadyExists.hashCode());
-        }
+        // Create the object.
+        final JavaSstParserObject object = new JavaSstParserObject(token, JavaSstParserObjectClass.CONSTANT);
+        object.setIntValue(integerValue);
+        object.setType(JavaSstParserObjectType.INTEGER);
+        symbolTable.add(object);
 
-        // Build AST.
-        JavaSstNode n = new JavaSstNode();
-        n.setClazz(JavaSstNodeClass.CONSTANT);
-        n.setObject(p);
-        n.setType(JavaSstNodeType.INTEGER);
-
-        // Add node to the left of root.
-        if (ast.getRoot().getLeft().isPresent()) {
-            Node<JavaSstNodeClass, JavaSstNodeSubclass, JavaSstNodeType> parent = ast.getRoot().getLeft().get();
-            while (parent.getLink().isPresent()) {
-                parent = parent.getLink().get();
-            }
-
-            parent.setLink(n);
-        } else {
-            ast.getRoot().setLeft(n);
-        }
+        // Create the node.
+        final JavaSstNode node = new JavaSstNode();
+        node.setClazz(JavaSstNodeClass.CONSTANT);
+        node.setObject(object);
+        node.setType(JavaSstNodeType.INTEGER);
+        return node;
     }
 
     /**
@@ -138,13 +121,13 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType, JavaSs
      * <p>
      * TODO: Add handling for non integer variable declarations.
      */
-    private void variableDeclaration() {
+    private JavaSstNode variableDeclaration() {
         // Verify syntax.
         type();
-        final JavaSstToken token = token().is(IDENT).once();
-        token().is(SEMICOLON).once();
+        final JavaSstToken token = token(IDENT).once();
+        token(SEMICOLON).once();
 
-        // Build symbol table.
+        // Build symbol table entry.
         JavaSstParserObject p = new JavaSstParserObject(token, JavaSstParserObjectClass.VARIABLE);
         try {
             symbolTable.add(p);
@@ -152,6 +135,13 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType, JavaSs
             LOGGER.log(Level.SEVERE, "Identifier already used.", symbolAlreadyExists);
             System.exit(symbolAlreadyExists.hashCode());
         }
+
+        // Build AST node.
+        JavaSstNode n = new JavaSstNode();
+        n.setClazz(JavaSstNodeClass.VARIABLE);
+        n.setObject(p);
+        n.setType(JavaSstNodeType.INTEGER);
+        return n;
     }
 
     /**
@@ -162,11 +152,11 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType, JavaSs
      */
     private void functionDeclaration() {
         // Verify syntax.
-        token().is(PUBLIC).once();
+        token(PUBLIC).once();
         final JavaSstToken t = token;
-        final String type = token().is(VOID, INT).once().getIdentifier();
+        final String type = token(VOID, INT).once().getIdentifier();
 
-        final JavaSstToken token = token().is(IDENT).once();
+        final JavaSstToken token = token(IDENT).once();
         final List<JavaSstParserObject> parameters = new LinkedList<>();
         SymbolTable[] st = new SymbolTable[1];
         scope(() -> {
@@ -181,11 +171,11 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType, JavaSs
                 }
             });
 
-            token().is(CURLY_BRACE_OPEN).once();
-            token().is(first("variable_declaration")).repeat(this::variableDeclaration);
+            token(CURLY_BRACE_OPEN).once();
+            token(first("variable_declaration")).repeat(this::variableDeclaration);
 
             statementSequence();
-            token().is(CURLY_BRACE_CLOSE).once();
+            token(CURLY_BRACE_CLOSE).once();
         });
 
         // Build symbol table.
@@ -236,22 +226,22 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType, JavaSs
      * TODO: Add handling for non integer parameters.
      */
     private List<JavaSstParserObject> formalParameters() {
-        token().is(PARENTHESIS_OPEN).once();
+        token(PARENTHESIS_OPEN).once();
 
         List<JavaSstParserObject> parameters = new LinkedList<>();
-        token().is(first("fp_section")).optional(() -> {
+        token(first("fp_section")).optional(() -> {
             type();
-            JavaSstToken token = token().is(IDENT).once();
+            JavaSstToken token = token(IDENT).once();
 
             // Build symbol table.
             JavaSstParserObject parameter = new JavaSstParserObject(token, JavaSstParserObjectClass.PARAMETER);
             parameter.setType(JavaSstParserObjectType.INTEGER);
             parameters.add(parameter);
 
-            token().is(COMMA).repeat(() -> {
+            token(COMMA).repeat(() -> {
                 next();
                 type();
-                final JavaSstToken t = token().is(IDENT).once();
+                final JavaSstToken t = token(IDENT).once();
 
                 // Build symbol table.
                 final JavaSstParserObject p = new JavaSstParserObject(t, JavaSstParserObjectClass.PARAMETER);
@@ -260,14 +250,14 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType, JavaSs
             });
         });
 
-        token().is(PARENTHESIS_CLOSE).once();
+        token(PARENTHESIS_CLOSE).once();
 
         return parameters;
     }
 
     private void statementSequence() {
         statement();
-        token().is(first("statement")).repeat(this::statement);
+        token(first("statement")).repeat(this::statement);
     }
 
     private void statement() {
@@ -277,11 +267,11 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType, JavaSs
 
             if (PARENTHESIS_OPEN == token.getType()) {
                 actualParameters();
-                token().is(SEMICOLON).once();
+                token(SEMICOLON).once();
             } else if (EQUALS == token.getType()) {
-                token().is(EQUALS).once();
+                token(EQUALS).once();
                 expression();
-                token().is(SEMICOLON).once();
+                token(SEMICOLON).once();
             } else {
                 error(PARENTHESIS_OPEN, EQUALS);
             }
@@ -297,55 +287,55 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType, JavaSs
     }
 
     private void type() {
-        token().is(INT).once();
+        token(INT).once();
     }
 
     private void ifStatement() {
-        token().is(IF).once();
-        token().is(PARENTHESIS_OPEN).once();
+        token(IF).once();
+        token(PARENTHESIS_OPEN).once();
         expression();
-        token().is(PARENTHESIS_CLOSE).once();
-        token().is(CURLY_BRACE_OPEN).once();
+        token(PARENTHESIS_CLOSE).once();
+        token(CURLY_BRACE_OPEN).once();
         statementSequence();
-        token().is(CURLY_BRACE_CLOSE).once();
-        token().is(ELSE).once();
-        token().is(CURLY_BRACE_OPEN).once();
+        token(CURLY_BRACE_CLOSE).once();
+        token(ELSE).once();
+        token(CURLY_BRACE_OPEN).once();
         statementSequence();
-        token().is(CURLY_BRACE_CLOSE).once();
+        token(CURLY_BRACE_CLOSE).once();
     }
 
     private void whileStatement() {
-        token().is(WHILE).once();
-        token().is(PARENTHESIS_OPEN).once();
+        token(WHILE).once();
+        token(PARENTHESIS_OPEN).once();
         expression();
-        token().is(PARENTHESIS_CLOSE).once();
-        token().is(CURLY_BRACE_OPEN).once();
+        token(PARENTHESIS_CLOSE).once();
+        token(CURLY_BRACE_OPEN).once();
         statementSequence();
-        token().is(CURLY_BRACE_CLOSE).once();
+        token(CURLY_BRACE_CLOSE).once();
     }
 
     private void returnStatement() {
-        token().is(RETURN).once();
-        token().is(first("simple_expression")).optional(this::simpleExpression);
-        token().is(SEMICOLON).once();
+        token(RETURN).once();
+        token(first("simple_expression")).optional(this::simpleExpression);
+        token(SEMICOLON).once();
     }
 
     private void actualParameters() {
-        token().is(PARENTHESIS_OPEN).once();
-        token().is(first("expression")).optional(() -> {
+        token(PARENTHESIS_OPEN).once();
+        token(first("expression")).optional(() -> {
             expression();
-            token().is(COMMA).repeat(() -> {
-                token().is(COMMA).once();
+            token(COMMA).repeat(() -> {
+                token(COMMA).once();
                 expression();
             });
         });
 
-        token().is(PARENTHESIS_CLOSE).once();
+        token(PARENTHESIS_CLOSE).once();
     }
 
     private void expression() {
         simpleExpression();
-        token().is(EQUALS_EQUALS, GREATER_THAN, GREATER_THAN_EQUALS, LESS_THAN, LESS_THAN_EQUALS).optional(() -> {
+        token(EQUALS_EQUALS, GREATER_THAN, GREATER_THAN_EQUALS, LESS_THAN, LESS_THAN_EQUALS).optional(() -> {
             next();
             simpleExpression();
         });
@@ -353,7 +343,7 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType, JavaSs
 
     private void simpleExpression() {
         term();
-        token().is(PLUS, MINUS).repeat(() -> {
+        token(PLUS, MINUS).repeat(() -> {
             next();
             term();
         });
@@ -361,7 +351,7 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType, JavaSs
 
     private void term() {
         factor();
-        token().is(TIMES, SLASH).repeat(() -> {
+        token(TIMES, SLASH).repeat(() -> {
             next();
             factor();
         });
@@ -371,7 +361,6 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType, JavaSs
         final JavaSstNode node = new JavaSstNode();
 
         if (IDENT == token.getType()) {
-            final JavaSstToken t = token;
             final String identifier = token.getIdentifier();
             next();
 
@@ -380,13 +369,8 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType, JavaSs
                 actualParameters();
             } else {
                 node.setClazz(JavaSstNodeClass.VARIABLE);
-                Optional<JavaSstParserObject> o = symbolTable.object(identifier);
-                if (o.isPresent()) {
-                    node.setObject(o.get());
-                } else {
-                    LOGGER.severe("Unknown identifier " + t);
-                    System.exit(-1);
-                }
+                JavaSstParserObject o = symbolTable.object(identifier).orElseThrow(UnknownError::new);
+                node.setObject(o);
             }
         } else if (NUMBER == token.getType()) {
             node.setClazz(JavaSstNodeClass.NUMBER);
@@ -395,7 +379,7 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstTokenType, JavaSs
         } else if (PARENTHESIS_OPEN == token.getType()) {
             next();
             expression();
-            token().is(PARENTHESIS_CLOSE).once();
+            token(PARENTHESIS_CLOSE).once();
         } else {
             error(IDENT, NUMBER, PARENTHESIS_OPEN);
         }

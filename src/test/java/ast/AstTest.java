@@ -80,7 +80,7 @@ public class AstTest {
 
     @Test
     public void testToDot() throws Exception {
-        final String dot = ast.toDot();
+        final String dot = ast.toString();
         final String expected = new Scanner(new File("src/test/resources/ast.dot")).useDelimiter("\\Z").next();
         assertEquals(expected, dot);
     }

@@ -18,17 +18,17 @@ public abstract class Node<C extends Enum, S extends Enum, T extends Enum> {
     /**
      * The left {@link Node}.
      */
-    private Optional<? extends Node<C, S, T>> left;
+    private Optional<Node<C, S, T>> left;
 
     /**
      * The right {@link Node}.
      */
-    private Optional<? extends Node<C, S, T>> right;
+    private Optional<Node<C, S, T>> right;
 
     /**
      * The link {@link Node}.
      */
-    private Optional<? extends Node<C, S, T>> link;
+    private Optional<Node<C, S, T>> link;
 
     /**
      * The type.
@@ -71,7 +71,7 @@ public abstract class Node<C extends Enum, S extends Enum, T extends Enum> {
      *
      * @return The left {@link Node}.
      */
-    public Optional<? extends Node<C, S, T>> getLeft() {
+    public Optional<Node<C, S, T>> getLeft() {
         return left;
     }
 
@@ -89,7 +89,7 @@ public abstract class Node<C extends Enum, S extends Enum, T extends Enum> {
      *
      * @return The right {@link Node}.
      */
-    public Optional<? extends Node<C, S, T>> getRight() {
+    public Optional<Node<C, S, T>> getRight() {
         return right;
     }
 
@@ -107,7 +107,7 @@ public abstract class Node<C extends Enum, S extends Enum, T extends Enum> {
      *
      * @return The link {@link Node}.
      */
-    public Optional<? extends Node<C, S, T>> getLink() {
+    public Optional<Node<C, S, T>> getLink() {
         return link;
     }
 

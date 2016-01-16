@@ -59,66 +59,116 @@ public final class Ast<N extends Node<?, ?, ?>> {
     }
 
     /**
+     * Insert a node at the given position.
+     *
+     * @param node      The node.
+     * @param placement The placement array.
+     */
+    @SuppressWarnings("unchecked")
+    public void insert(final Node node, final Position... placement) {
+        Node<?, ?, ?> parent = root;
+        for (Position position : placement) {
+            switch (position) {
+                case LEFT:
+                    if (parent.getLeft().isPresent()) {
+                        parent = parent.getLeft().get();
+                    } else {
+                        parent.setLeft(node);
+                        return;
+                    }
+                    break;
+                case LINK:
+                    if (parent.getLink().isPresent()) {
+                        parent = parent.getLink().get();
+                    } else {
+                        parent.setLink(node);
+                        return;
+                    }
+                    break;
+                case RIGHT:
+                    if (parent.getRight().isPresent()) {
+                        parent = parent.getRight().get();
+                    } else {
+                        parent.setRight(node);
+                        return;
+                    }
+                    break;
+            }
+        }
+
+        switch (placement[placement.length]) {
+            case LEFT:
+                while (parent.getLeft().isPresent()) {
+                    parent = parent.getLeft().get();
+                }
+                parent.setLeft(node);
+                return;
+            case LINK:
+                while (parent.getLink().isPresent()) {
+                    parent = parent.getLink().get();
+                }
+                parent.setLink(node);
+                return;
+            case RIGHT:
+                while (parent.getRight().isPresent()) {
+                    parent = parent.getRight().get();
+                }
+                parent.setRight(node);
+                return;
+        }
+
+        throw new RuntimeException("Unable to place node " + node);
+    }
+
+    /**
      * Traverse the {@link Ast}.
+     *
+     * @param consumer The consumer getting the {@link Node}s.
      */
     public void traverse(final Consumer<Node<?, ?, ?>> consumer) {
         traverse(root, consumer);
     }
 
-    /**
-     * Build a string by traversing the AST.
-     *
-     * @return The built string.
-     */
-    public String toDot() {
+    @Override
+    public String toString() {
         final List<Node<?, ?, ?>> nodes = new ArrayList<>();
 
         // Prepare string with node definitions.
-        final StringBuilder string = new StringBuilder("digraph AST {").append(System.lineSeparator());
+        final StringBuilder result = new StringBuilder("digraph AST {").append(System.lineSeparator());
         traverse(node -> {
-            string.append("\t");
-            string.append(node.toDot(Integer.toString(nodes.size())));
-            string.append(System.lineSeparator());
+            result.append("\t");
+            result.append(node.toDot(Integer.toString(nodes.size())));
+            result.append(System.lineSeparator());
             nodes.add(node);
         });
-        string.append(System.lineSeparator());
+        result.append(System.lineSeparator());
 
         // Add edges to string.
         traverse(node -> {
-            final String s = "\t" + index(nodes, node) + " -> ";
+            final String s = "\t\"" + nodes.indexOf(node) + "\" -> \"";
             if (node.getLeft().isPresent()) {
-                string.append(s).append(index(nodes, node.getLeft().get()));
-                string.append("[ label=\"left\"]").append(";").append(System.lineSeparator());
+                result.append(s).append(nodes.indexOf(node.getLeft().get()));
+                result.append("\" [label=\"left\"]").append(";").append(System.lineSeparator());
             }
 
             if (node.getRight().isPresent()) {
-                string.append(s).append(index(nodes, node.getRight().get()));
-                string.append("[ label=\"right\"]").append(";").append(System.lineSeparator());
+                result.append(s).append(nodes.indexOf(node.getRight().get()));
+                result.append("\" [label=\"right\"]").append(";").append(System.lineSeparator());
             }
 
             if (node.getLink().isPresent()) {
-                string.append(s).append(index(nodes, node.getLink().get()));
-                string.append("[ label=\"link\"]").append(";").append(System.lineSeparator());
+                result.append(s).append(nodes.indexOf(node.getLink().get()));
+                result.append("\" [label=\"link\"]").append(";").append(System.lineSeparator());
             }
         });
 
-        return string.append("}").toString();
+        return result.append("}").toString();
     }
 
     /**
-     * Get the index of a {@link Node} in a list of {@link Node}s.
-     *
-     * @param list   The list.
-     * @param object The {@link Node}.
-     * @return The index of the {@link Node} pre and post fixed with a '"'.
+     * Enumeration describing possible {@link Node} positions in the AST.
      */
-    private String index(final List<Node<?, ?, ?>> list, final Node<?, ?, ?> object) {
-        for (int i = 0; i < list.size(); i++) {
-            if (object.equals(list.get(i))) {
-                return "\"" + Integer.toString(i) + "\"";
-            }
-        }
-
-        return "NOT_FOUND";
+    public enum Position {
+        LEFT, LINK, RIGHT
     }
 }
