@@ -1,7 +1,7 @@
 package javasst;
 
 /**
- * Enumeration of possible {@link scanner.Token} types.
+ * Enumeration of possible types.
  */
 public enum JavaSstType {
 

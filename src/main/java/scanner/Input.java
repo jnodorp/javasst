@@ -8,7 +8,7 @@ import java.util.logging.Logger;
 /**
  * This class wraps a {@link FileInputStream} adding the {@link Input#next()} method.
  */
-public class Input implements Iterator<Character> {
+public final class Input implements Iterator<Character> {
 
     /**
      * The logger.

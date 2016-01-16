@@ -67,7 +67,7 @@ public class JavaSstParserTest {
         assertEquals("b", b.getIdentifier());
         assertEquals(3, b.getIntValue());
         assertEquals(JavaSstType.CONSTANT, b.getObjectClass());
-        assertEquals(JavaSstType.INTEGER, b.getParserType());
+        assertEquals(JavaSstType.INTEGER, b.getType());
 
         JavaSstParserObject f = a.getSymbolTable().object("f").get();
         assertEquals("f", f.getIdentifier());
@@ -77,7 +77,7 @@ public class JavaSstParserTest {
 
         JavaSstParserObject x = f.getSymbolTable().object("x").get();
         assertEquals("x", x.getIdentifier());
-        assertEquals(JavaSstType.INTEGER, x.getParserType());
+        assertEquals(JavaSstType.INTEGER, x.getType());
         assertNotNull(f.getSymbolTable());
     }
 }

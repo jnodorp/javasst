@@ -1,8 +1,6 @@
 package parser;
 
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 /**
  * A token table.
@@ -12,14 +10,19 @@ import java.util.Optional;
 public final class SymbolTable<O extends parser.ParserObject> {
 
     /**
+     * The default category.
+     */
+    private static final String DEFAULT = "default";
+
+    /**
      * The enclosing symbol table.
      */
     private final Optional<SymbolTable<O>> enclose;
 
     /**
-     * The {@link ParserObject}s.
+     * The {@link ParserObject}s by category.
      */
-    private final List<O> objects;
+    private final Map<String, List<O>> objects;
 
     /**
      * Create a new symbol table.
@@ -28,7 +31,7 @@ public final class SymbolTable<O extends parser.ParserObject> {
      */
     public SymbolTable(final SymbolTable<O> enclose) {
         this.enclose = Optional.ofNullable(enclose);
-        this.objects = new LinkedList<>();
+        this.objects = new LinkedHashMap<>();
     }
 
     /**
@@ -41,24 +44,44 @@ public final class SymbolTable<O extends parser.ParserObject> {
     }
 
     /**
-     * Get all {@link ParserObject}s of THIS symbol table.
+     * Get all {@link ParserObject}s of THIS symbol table with the default category.
      *
-     * @return All {@link ParserObject}s of THIS symbol table.
+     * @return All {@link ParserObject}s of THIS symbol table with the default category.
      */
     public List<O> getObjects() {
-        return objects;
+        return getObjects(DEFAULT);
     }
 
     /**
-     * Get a {@link ParserObject} from this or any enclosing symbol table.
-     * <p>
-     * TODO: Allow e.g. functions and variables with the same name.
+     * Get all {@link ParserObject}s of THIS symbol table.
+     *
+     * @param category The category.
+     * @return All {@link ParserObject}s of THIS symbol table.
+     */
+    public List<O> getObjects(final String category) {
+        return objects.get(category);
+    }
+
+    /**
+     * Get a {@link ParserObject} from this or any enclosing symbol table with the default category.
      *
      * @param name The objects name.
-     * @return The {@link ParserObject} from this or any enclosing symbol table.
+     * @return The {@link ParserObject} from this or any enclosing symbol table with the default category.
      */
     public Optional<O> object(final String name) {
-        Optional<O> result = objects.stream().filter(parserObject -> name.equals(parserObject.getIdentifier())).findAny();
+        return object(DEFAULT, name);
+    }
+
+    /**
+     * Get a {@link ParserObject} from this or any enclosing symbol table with the default category.
+     *
+     * @param category The category.
+     * @param name     The objects name.
+     * @return The {@link ParserObject} from this or any enclosing symbol table with the default category.
+     */
+    public Optional<O> object(final String category, final String name) {
+        Optional<O> result = objects.getOrDefault(category, new LinkedList<>()).stream()
+                .filter(parserObject -> name.equals(parserObject.getIdentifier())).findAny();
         if (result.isPresent()) {
             return result;
         } else if (getEnclose().isPresent()) {
@@ -74,11 +97,25 @@ public final class SymbolTable<O extends parser.ParserObject> {
      * @param object The {@link ParserObject}.
      */
     public void add(final O object) throws SymbolAlreadyExists {
-        Optional<O> existing = objects.stream().filter(o -> o.getIdentifier().equals(object.getIdentifier())).findAny();
+        add(DEFAULT, object);
+    }
+
+    /**
+     * Add a {@link ParserObject}.
+     *
+     * @param category The category.
+     * @param object   The {@link ParserObject}.
+     */
+    public void add(final String category, final O object) throws SymbolAlreadyExists {
+        if (objects.get(category) == null) {
+            objects.put(category, new LinkedList<>());
+        }
+
+        Optional<O> existing = objects.get(category).stream().filter(o -> o.getIdentifier().equals(object.getIdentifier())).findAny();
         if (existing.isPresent()) {
             throw new SymbolAlreadyExists(existing.get(), object);
         } else {
-            objects.add(object);
+            objects.get(category).add(object);
         }
     }
 

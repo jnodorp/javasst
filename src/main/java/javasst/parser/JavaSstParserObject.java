@@ -2,6 +2,7 @@ package javasst.parser;
 
 import javasst.JavaSstType;
 import javasst.scanner.JavaSstToken;
+import parser.ParserObject;
 import parser.SymbolTable;
 import scanner.Token;
 
@@ -86,7 +87,7 @@ public class JavaSstParserObject implements parser.ParserObject {
      *
      * @return The {@link JavaSstType}.
      */
-    public JavaSstType getParserType() {
+    public JavaSstType getType() {
         return type;
     }
 
@@ -172,19 +173,6 @@ public class JavaSstParserObject implements parser.ParserObject {
     public List<JavaSstParserObject> getParameterList() {
         if (objectClass == JavaSstType.FUNCTION) {
             return symbolTable.getObjects().stream().filter(o -> JavaSstType.PARAMETER == o.getObjectClass()).collect(Collectors.toList());
-        } else {
-            throw new ObjectClassException(JavaSstType.FUNCTION);
-        }
-    }
-
-    /**
-     * Get the result.
-     *
-     * @return The result.
-     */
-    public JavaSstType getResult() {
-        if (objectClass == JavaSstType.FUNCTION) {
-            return null; // FIXME
         } else {
             throw new ObjectClassException(JavaSstType.FUNCTION);
         }

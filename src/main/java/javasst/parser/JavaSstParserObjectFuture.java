@@ -40,8 +40,8 @@ public class JavaSstParserObjectFuture extends JavaSstParserObject {
     }
 
     @Override
-    public JavaSstType getParserType() {
-        return super.getSymbolTable().object(super.getIdentifier()).orElseThrow(UnknownError::new).getParserType();
+    public JavaSstType getType() {
+        return super.getSymbolTable().object(super.getIdentifier()).orElseThrow(UnknownError::new).getType();
     }
 
     @Override
@@ -87,15 +87,6 @@ public class JavaSstParserObjectFuture extends JavaSstParserObject {
         if (getObjectClass() == JavaSstType.FUNCTION) {
             return super.getSymbolTable().object(super.getIdentifier()).orElseThrow(UnknownError::new).getSymbolTable()
                     .getObjects().stream().filter(o -> JavaSstType.PARAMETER == o.getObjectClass()).collect(Collectors.toList());
-        } else {
-            throw new ObjectClassException(JavaSstType.FUNCTION);
-        }
-    }
-
-    @Override
-    public JavaSstType getResult() {
-        if (getObjectClass() == JavaSstType.FUNCTION) {
-            return null; // FIXME
         } else {
             throw new ObjectClassException(JavaSstType.FUNCTION);
         }

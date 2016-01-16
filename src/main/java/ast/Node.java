@@ -6,8 +6,6 @@ import java.util.Optional;
 
 /**
  * A {@link Node} of the abstract syntax tree (AST).
- * <p>
- * TODO: Add handling for constants.
  *
  * @param <C> The {@link Node}s class enumeration.
  * @param <T> The {@link Node}s type enumeration.
