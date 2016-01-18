@@ -1,5 +1,6 @@
 import ast.Ast;
 import javasst.JavaSstType;
+import javasst.analyzers.SemanticAnalyzers;
 import javasst.ast.JavaSstNode;
 import javasst.parser.JavaSstParser;
 import javasst.parser.JavaSstParserObject;
@@ -75,6 +76,8 @@ public class Main {
         Parser<JavaSstToken, JavaSstType, JavaSstParserObject, JavaSstNode> parser = new JavaSstParser(scanner);
 
         Ast<JavaSstNode> ast = parser.parse();
+        ast.traverse(SemanticAnalyzers.allDeclared());
+
         try {
             FileUtils.writeStringToFile(AST, ast.toString(), StandardCharsets.UTF_8);
         } catch (IOException e) {

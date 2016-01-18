@@ -457,16 +457,20 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstType, JavaSstPars
                 final JavaSstToken t = token;
                 next();
 
+                final String identifier = t.getIdentifier();
+                final Optional<JavaSstParserObject> optional = symbolTable.object(identifier);
+                final JavaSstParserObjectFuture alternative = new JavaSstParserObjectFuture(identifier, symbolTable);
+                final JavaSstParserObject object = optional.orElseGet(() -> alternative);
+
                 // Could be an internal function call.
                 if (PARENTHESIS_OPEN == token.getType()) {
                     node.setClazz(CALL);
-                    node.setObject(symbolTable.object(t.getIdentifier()).orElseGet(() -> new JavaSstParserObjectFuture(t.getIdentifier(), symbolTable)));
+                    node.setObject(object);
                     node.setLeft(actualParameters().orElse(null));
                 } else {
                     node.setClazz(VARIABLE);
                     node.setType(INTEGER);
-                    JavaSstParserObject o = symbolTable.object(t.getIdentifier()).orElseThrow(UnknownError::new);
-                    node.setObject(o);
+                    node.setObject(object);
                 }
                 break;
             case NUMBER:
@@ -502,7 +506,7 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstType, JavaSstPars
      * @param expected A list of expected tokens.
      * @see #error(List)
      */
-    private void error(JavaSstType... expected) {
+    private void error(final JavaSstType... expected) {
         error(Arrays.asList(expected));
     }
 
@@ -512,7 +516,7 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstType, JavaSstPars
      * @param c The construct.
      * @return The possible first token types of c.
      */
-    private List<JavaSstType> first(String c) {
+    private List<JavaSstType> first(final String c) {
         final ArrayList<JavaSstType> result = new ArrayList<>();
 
         switch (c) {
