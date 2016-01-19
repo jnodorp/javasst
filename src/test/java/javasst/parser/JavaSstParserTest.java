@@ -22,7 +22,7 @@ public class JavaSstParserTest {
 
     @Test
     public void testParse() throws Exception {
-        final Input input = new Input("src/test/resources/test.sst");
+        final Input input = new Input("src/test/resources/javasst/parser/test.sst");
         final Scanner<JavaSstToken, JavaSstType> scanner = new JavaSstScanner(input);
         Parser<JavaSstToken, JavaSstType, JavaSstParserObject, JavaSstNode> parser = new JavaSstParser(scanner);
 
@@ -31,7 +31,7 @@ public class JavaSstParserTest {
 
     @Test(expected = Exception.class)
     public void testError() throws FileNotFoundException {
-        final Input input = new Input("src/test/resources/error_test.sst");
+        final Input input = new Input("src/test/resources/javasst/parser/error_test.sst");
         final Scanner<JavaSstToken, JavaSstType> scanner = new JavaSstScanner(input);
         Parser parser = new JavaSstParser(scanner);
 
@@ -40,7 +40,7 @@ public class JavaSstParserTest {
 
     @Test
     public void testSymbolTable() throws FileNotFoundException {
-        final Input input = new Input("src/test/resources/table_test.sst");
+        final Input input = new Input("src/test/resources/javasst/parser/table_test.sst");
         final Scanner<JavaSstToken, JavaSstType> scanner = new JavaSstScanner(input);
         JavaSstParser parser = new JavaSstParser(scanner);
 

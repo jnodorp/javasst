@@ -12,7 +12,16 @@ public final class Ast<N extends Node<?, ?>> {
     /**
      * The root.
      */
-    private N root;
+    private final N root;
+
+    /**
+     * Create a new AST.
+     *
+     * @param root The root.
+     */
+    public Ast(final N root) {
+        this.root = root;
+    }
 
     /**
      * Traverse the {@link Ast} beginning with the given node.
@@ -47,87 +56,6 @@ public final class Ast<N extends Node<?, ?>> {
      */
     public N getRoot() {
         return root;
-    }
-
-    /**
-     * Set the root.
-     *
-     * @param root The root.
-     */
-    public void setRoot(final N root) {
-        this.root = root;
-    }
-
-    /**
-     * Insert a node at the given position.
-     *
-     * @param node      The node.
-     * @param placement The placement array.
-     */
-    @SuppressWarnings("unchecked")
-    public void insertAfter(Node<?, ?> parent, final Node node, final Position... placement) {
-        for (Position position : placement) {
-            switch (position) {
-                case LEFT:
-                    if (parent.getLeft().isPresent()) {
-                        parent = parent.getLeft().get();
-                    } else {
-                        parent.setLeft(node);
-                        return;
-                    }
-                    break;
-                case LINK:
-                    if (parent.getLink().isPresent()) {
-                        parent = parent.getLink().get();
-                    } else {
-                        parent.setLink(node);
-                        return;
-                    }
-                    break;
-                case RIGHT:
-                    if (parent.getRight().isPresent()) {
-                        parent = parent.getRight().get();
-                    } else {
-                        parent.setRight(node);
-                        return;
-                    }
-                    break;
-            }
-        }
-
-        switch (placement[placement.length - 1]) {
-            case LEFT:
-                while (parent.getLeft().isPresent()) {
-                    parent = parent.getLeft().get();
-                }
-                parent.setLeft(node);
-                return;
-            case LINK:
-                while (parent.getLink().isPresent()) {
-                    parent = parent.getLink().get();
-                }
-                parent.setLink(node);
-                return;
-            case RIGHT:
-                while (parent.getRight().isPresent()) {
-                    parent = parent.getRight().get();
-                }
-                parent.setRight(node);
-                return;
-        }
-
-        throw new RuntimeException("Unable to place node " + node);
-    }
-
-    /**
-     * Insert a node at the given position.
-     *
-     * @param node      The node.
-     * @param placement The placement array.
-     */
-    @SuppressWarnings("unchecked")
-    public void insert(final Node node, final Position... placement) {
-        insertAfter(root, node, placement);
     }
 
     /**

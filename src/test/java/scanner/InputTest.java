@@ -13,7 +13,7 @@ public class InputTest {
 
     @Test
     public void testNextAndHasNext() throws Exception {
-        Input input = new Input("src/test/resources/input_test.txt");
+        Input input = new Input("src/test/resources/scanner/input_test.txt");
 
         assertTrue(input.hasNext());
         assertTrue(input.hasNext());
@@ -24,7 +24,7 @@ public class InputTest {
 
     @Test
     public void testGetPosition() throws Exception {
-        Input input = new Input("src/test/resources/input_test.txt");
+        Input input = new Input("src/test/resources/scanner/input_test.txt");
 
         assertEquals("input_test.txt", input.getFile().getName());
         assertEquals(1, input.getLine());
@@ -39,7 +39,7 @@ public class InputTest {
 
     @Test
     public void testLookahead() throws Exception {
-        Input input = new Input("src/test/resources/input_test1.txt");
+        Input input = new Input("src/test/resources/scanner/input_test1.txt");
 
         assertEquals("T", "" + input.next());
         assertEquals("h", "" + input.next());

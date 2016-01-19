@@ -21,7 +21,7 @@ public class JavaSstScannerTest {
      * The test file to use.
      */
     private static final String FILE = "src" + File.separator + "test" + File.separator + "resources" + File
-            .separator + "test.sst";
+            .separator + "javasst/parser/test.sst";
 
     /**
      * The scanner under test.

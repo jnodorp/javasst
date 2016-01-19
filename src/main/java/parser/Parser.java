@@ -27,11 +27,6 @@ public abstract class Parser<T extends Token<E>, E extends Enum, O extends Parse
     private static final Logger LOGGER = Logger.getLogger(Parser.class.getName());
 
     /**
-     * The AST.
-     */
-    protected final Ast<N> ast;
-
-    /**
      * The scanner.
      */
     private final Scanner<T, E> scanner;
@@ -53,7 +48,6 @@ public abstract class Parser<T extends Token<E>, E extends Enum, O extends Parse
      */
     public Parser(final Scanner<T, E> scanner) {
         this.scanner = scanner;
-        this.ast = new Ast<>();
     }
 
     /**

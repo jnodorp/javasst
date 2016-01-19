@@ -13,7 +13,6 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import static ast.Ast.Position.*;
 import static javasst.JavaSstType.*;
 
 /**
@@ -25,6 +24,11 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstType, JavaSstPars
      * The logger.
      */
     private static final Logger LOGGER = Logger.getLogger(JavaSstParser.class.getName());
+
+    /**
+     * The {@link Ast}.
+     */
+    private Ast<JavaSstNode> ast;
 
     /**
      * Create a new {@link Parser} based on the given scanner.
@@ -46,7 +50,7 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstType, JavaSstPars
         final JavaSstParserObject[] o = new JavaSstParserObject[1];
         n.setClazz(CLASS);
 
-        ast.setRoot(n);
+        ast = new Ast<>(n);
         scope(() -> {
             token(CLASS).once();
             final JavaSstToken token = token(IDENT).once();
@@ -71,9 +75,29 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstType, JavaSstPars
      */
     private void classBody() {
         token(CURLY_BRACE_OPEN).once();
-        token(FINAL).repeat(() -> ast.insert(constant(), LEFT, LINK));
+        token(FINAL).repeat(() -> {
+            JavaSstNode n = ast.getRoot();
+            if (n.getLeft().isPresent()) {
+                n = (JavaSstNode) n.getLeft().get();
+                while (n.getLink().isPresent()) {
+                    n = (JavaSstNode) n.getLink().get();
+                }
+            }
+
+            n.setLeft(constant());
+        });
         token(first("variable_declaration")).repeat(this::variableDeclaration);
-        token(first("function_declaration")).repeat(() -> ast.insert(functionDeclaration(), RIGHT, LINK));
+        token(first("function_declaration")).repeat(() -> {
+            JavaSstNode n = ast.getRoot();
+            if (n.getRight().isPresent()) {
+                n = (JavaSstNode) n.getRight().get();
+                while (n.getLink().isPresent()) {
+                    n = (JavaSstNode) n.getLink().get();
+                }
+            }
+
+            n.setRight(functionDeclaration());
+        });
         token(CURLY_BRACE_CLOSE).once();
     }
 
@@ -496,10 +520,7 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstType, JavaSstPars
     @Override
     public Ast<JavaSstNode> parse() {
         next();
-        ast.setRoot(clazz());
-        // token().is(EOF).once();
-
-        return ast;
+        return new Ast<>(clazz());
     }
 
     /**

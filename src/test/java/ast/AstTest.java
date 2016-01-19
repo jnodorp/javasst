@@ -1,10 +1,13 @@
 package ast;
 
+import org.apache.commons.io.FileUtils;
 import org.junit.Before;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import java.io.File;
-import java.util.Scanner;
+import java.io.IOException;
+import java.util.function.Consumer;
 
 import static org.junit.Assert.assertEquals;
 
@@ -16,7 +19,7 @@ public class AstTest {
     /**
      * The {@link Ast}.
      */
-    private final Ast<TestNode> ast = new Ast<>();
+    private Ast<TestNode> ast;
 
     @Before
     public void setUp() throws Exception {
@@ -75,19 +78,42 @@ public class AstTest {
         n2.setRight(n10);
         n2.setLink(n11);
 
-        ast.setRoot(root);
+        ast = new Ast<>(root);
     }
 
+    /**
+     * Test method for {@link Ast#traverse(Consumer)}.
+     */
     @Test
-    public void testToDot() throws Exception {
+    @Ignore(value = "Not implemented yet.")
+    public void testTraverse() {
+        // TODO: Implement test case.
+    }
+
+    /**
+     * Test method for {@link Ast#getRoot()}.
+     */
+    @Test
+    public void getRoot() {
+        final TestNode root = new TestNode();
+        final Ast<TestNode> ast = new Ast<>(root);
+        assertEquals("The AST should not modify the root node.", root, ast.getRoot());
+    }
+
+    /**
+     * Test method for {@link Ast#toString()}
+     *
+     * @throws IOException Thrown if an error occurs while reading the input file.
+     */
+    @Test
+    public void testToString() throws IOException {
         final String dot = ast.toString();
-        final String expected = new Scanner(new File("src/test/resources/ast.dot")).useDelimiter("\\Z").next();
-        assertEquals(expected, dot);
+        final String expected = FileUtils.readFileToString(new File("src/test/resources/ast/ast.dot"));
+
+        assertEquals("The ASTs dot output should not change.", expected, dot);
     }
 
     private enum C {ROOT, N0, N1, N2, N3, N4, N5, N6, N7, N8, N9, N10, N11}
-
-    private enum S {}
 
     private enum T {}
 
