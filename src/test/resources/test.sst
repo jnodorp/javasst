@@ -21,6 +21,10 @@ class className6 {
         return x + y;
     }
 
+    public int add(int x, int y, int z) {
+        return x + y + z;
+    }
+
     public int signum(int x) {
         if(x == 0) {
             return 1;

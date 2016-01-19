@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 /**
  * {@link JavaSstParserObject}s (e.g. variables, constant, etc.).
  */
-public class JavaSstParserObject implements parser.ParserObject {
+public class JavaSstParserObject implements ParserObject {
 
     /**
      * The {@link Token}.
@@ -181,6 +181,30 @@ public class JavaSstParserObject implements parser.ParserObject {
     @Override
     public String toString() {
         return token.toString();
+    }
+
+    @Override
+    public boolean equals(final Object o) {
+        if (!(o instanceof JavaSstParserObject)) {
+            return false;
+        }
+
+        JavaSstParserObject object = (JavaSstParserObject) o;
+        if (!object.getIdentifier().equals(getIdentifier())) {
+            return false;
+        }
+
+        if (object.getParameterList().size() != getParameterList().size()) {
+            return false;
+        }
+
+        for (int i = 0; i < object.getParameterList().size(); i++) {
+            if (getParameterList().get(i).getType() != object.getParameterList().get(i).getType()) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     /**

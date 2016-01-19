@@ -234,7 +234,7 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstType, JavaSstPars
         // Chain statement nodes.
         JavaSstNode current = node;
         for (JavaSstNode n : nodes) {
-            current.setLink(n);
+            current.setLink(n); // Will never happen.
             current = n;
         }
 
@@ -255,7 +255,9 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstType, JavaSstPars
 
             if (PARENTHESIS_OPEN == token.getType()) {
                 final JavaSstNode node = new JavaSstNode(CALL);
-                node.setObject(symbolTable.object(t.getIdentifier()).orElseThrow(UnknownError::new));
+                node.setObject(symbolTable.object(t.getIdentifier()).orElse(
+                        new JavaSstParserObjectFuture(t.getIdentifier(), symbolTable)
+                ));
                 node.setLeft(actualParameters().get());
                 token(SEMICOLON).once();
                 return node;

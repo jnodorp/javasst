@@ -111,7 +111,7 @@ public final class SymbolTable<O extends parser.ParserObject> {
             objects.put(category, new LinkedList<>());
         }
 
-        Optional<O> existing = objects.get(category).stream().filter(o -> o.getIdentifier().equals(object.getIdentifier())).findAny();
+        Optional<O> existing = objects.get(category).stream().filter(o -> o.equals(object)).findAny();
         if (existing.isPresent()) {
             throw new SymbolAlreadyExists(existing.get(), object);
         } else {
