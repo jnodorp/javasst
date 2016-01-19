@@ -76,27 +76,29 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstType, JavaSstPars
     private void classBody() {
         token(CURLY_BRACE_OPEN).once();
         token(FINAL).repeat(() -> {
-            JavaSstNode n = ast.getRoot();
-            if (n.getLeft().isPresent()) {
-                n = (JavaSstNode) n.getLeft().get();
-                while (n.getLink().isPresent()) {
-                    n = (JavaSstNode) n.getLink().get();
+            JavaSstNode parent = ast.getRoot();
+            if (parent.getLeft().isPresent()) {
+                parent = (JavaSstNode) parent.getLeft().get();
+                while (parent.getLink().isPresent()) {
+                    parent = (JavaSstNode) parent.getLink().get();
                 }
+                parent.setLink(constant());
+            } else {
+                parent.setLeft(constant());
             }
-
-            n.setLeft(constant());
         });
         token(first("variable_declaration")).repeat(this::variableDeclaration);
         token(first("function_declaration")).repeat(() -> {
-            JavaSstNode n = ast.getRoot();
-            if (n.getRight().isPresent()) {
-                n = (JavaSstNode) n.getRight().get();
-                while (n.getLink().isPresent()) {
-                    n = (JavaSstNode) n.getLink().get();
+            JavaSstNode parent = ast.getRoot();
+            if (parent.getRight().isPresent()) {
+                parent = (JavaSstNode) parent.getRight().get();
+                while (parent.getLink().isPresent()) {
+                    parent = (JavaSstNode) parent.getLink().get();
                 }
+                parent.setLink(functionDeclaration());
+            } else {
+                parent.setRight(functionDeclaration());
             }
-
-            n.setRight(functionDeclaration());
         });
         token(CURLY_BRACE_CLOSE).once();
     }
@@ -413,9 +415,20 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstType, JavaSstPars
         final JavaSstNode node = term();
         final JavaSstNode parent = new JavaSstNode();
         token(PLUS, MINUS).repeat(() -> {
-            parent.setClazz(token.getType());
+            JavaSstNode p = parent;
+            if (p.getClazz() != null) {
+                p = new JavaSstNode(token.getType());
+                Optional<Node<JavaSstType, JavaSstType>> oldRight = parent.getRight();
+                if (oldRight.isPresent()) {
+                    p.setLeft(oldRight.get());
+                }
+                parent.setRight(p);
+            } else {
+                p.setClazz(token.getType());
+            }
+
             next();
-            parent.setRight(term());
+            p.setRight(term());
         });
 
         if (parent.getClazz() != null) {
@@ -434,22 +447,20 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstType, JavaSstPars
     private JavaSstNode term() {
         final JavaSstNode node = factor();
         final JavaSstNode parent = new JavaSstNode();
-
         token(TIMES, SLASH).repeat(() -> {
-            switch (token.getType()) {
-                case TIMES:
-                    parent.setClazz(TIMES);
-                    next();
-                    parent.setRight(factor());
-                    break;
-                case SLASH:
-                    parent.setClazz(SLASH);
-                    next();
-                    parent.setRight(factor());
-                    break;
-                default:
-                    error(TIMES, SLASH);
+            JavaSstNode p = parent;
+            if (p.getClazz() != null) {
+                p = new JavaSstNode(token.getType());
+                if (parent.getRight().isPresent()) {
+                    p.setLeft(parent.getRight().get());
+                }
+                parent.setRight(p);
+            } else {
+                p.setClazz(token.getType());
             }
+
+            next();
+            p.setRight(factor());
         });
 
         if (parent.getClazz() != null) {

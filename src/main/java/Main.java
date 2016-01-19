@@ -56,6 +56,7 @@ public class Main {
      */
     public static void main(String args[]) {
         String file = "src/test/resources/javasst/parser/test.sst";
+        // String file = "src/test/resources/javasst/parser/expression_test.sst";
 
         if (args.length != 1) {
             LOGGER.warning("Wrong number of arguments. Expected 1 but was " + args.length + "!");
