@@ -1,0 +1,10 @@
+class className1 {
+    public void funcVoid() {}
+    public void funcVoid(int param1) {}
+    public void funcVoid(int param1, int param2) {}
+    public void funcVoid(int param1, int param2, int param3) {}
+    public int funcInt() {}
+    public int funcInt(int param1) {}
+    public int funcInt(int param1, int param2) {}
+    public int funcInt(int param1, int param2, int param3) {}
+}

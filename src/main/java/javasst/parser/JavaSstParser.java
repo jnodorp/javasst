@@ -413,20 +413,9 @@ public class JavaSstParser extends Parser<JavaSstToken, JavaSstType, JavaSstPars
         final JavaSstNode node = term();
         final JavaSstNode parent = new JavaSstNode();
         token(PLUS, MINUS).repeat(() -> {
-            switch (token.getType()) {
-                case PLUS:
-                    parent.setClazz(PLUS);
-                    next();
-                    parent.setRight(term());
-                    break;
-                case MINUS:
-                    parent.setClazz(MINUS);
-                    next();
-                    parent.setRight(term());
-                    break;
-                default:
-                    error(PLUS, MINUS);
-            }
+            parent.setClazz(token.getType());
+            next();
+            parent.setRight(term());
         });
 
         if (parent.getClazz() != null) {

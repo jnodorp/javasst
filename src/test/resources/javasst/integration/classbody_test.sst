@@ -1,0 +1,9 @@
+class className1 {
+    final int intConst1 = 123;
+    final int intConst2 = 456;
+    final int intConst3 = 789;
+
+    int intVar1;
+    int intVar2;
+    int intVar3;
+}

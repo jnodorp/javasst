@@ -55,7 +55,7 @@ public class Main {
      * @param args The source file.
      */
     public static void main(String args[]) {
-        String file = "src/test/resources/test.sst";
+        String file = "src/test/resources/javasst/parser/test.sst";
 
         if (args.length != 1) {
             LOGGER.warning("Wrong number of arguments. Expected 1 but was " + args.length + "!");

@@ -1,9 +1,10 @@
 package javasst.parser;
 
+import ast.Ast;
+import javasst.JavaSstType;
 import javasst.ast.JavaSstNode;
 import javasst.scanner.JavaSstScanner;
 import javasst.scanner.JavaSstToken;
-import javasst.JavaSstType;
 import org.junit.Test;
 import org.mockito.internal.util.reflection.Whitebox;
 import parser.Parser;
@@ -79,5 +80,17 @@ public class JavaSstParserTest {
         assertEquals("x", x.getIdentifier());
         assertEquals(JavaSstType.INTEGER, x.getType());
         assertNotNull(f.getSymbolTable());
+    }
+
+    @Test
+    public void expressionTest() throws FileNotFoundException {
+        final Input input = new Input("src/test/resources/javasst/parser/expression_test.sst");
+        final Scanner<JavaSstToken, JavaSstType> scanner = new JavaSstScanner(input);
+        final Parser<JavaSstToken, JavaSstType, JavaSstParserObject, JavaSstNode> parser = new JavaSstParser(scanner);
+        final Ast<JavaSstNode> ast = parser.parse();
+
+        for (int i = 1; i <= 8; i++) {
+            assertTrue("Missing constant: '" + i + "'.", ast.toString().contains("<constant> " + i));
+        }
     }
 }
