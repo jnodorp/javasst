@@ -41,7 +41,7 @@ class className6 {
         int y;
         y = 10;
 
-        while(signum(y) >= 0) {
+        while(signum(y) > 0) {
             y = y - 1;
         }
     }
