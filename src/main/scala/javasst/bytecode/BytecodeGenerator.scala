@@ -154,8 +154,8 @@ class BytecodeGenerator(val filename: String, val ast: Ast[JavaSstNode], val cla
         // Ignore class nodes since we already added them in the first pass.
         case CLASS =>
           constructor << ByteCodes.RETURN
-          constructor.print
-          constructor.freeze
+          constructor.log(logger)
+          constructor.freeze()
 
         // Load constants.
         case CONSTANT => codeHandler << Ldc(node.constant.get)
@@ -190,11 +190,10 @@ class BytecodeGenerator(val filename: String, val ast: Ast[JavaSstNode], val cla
         // Freeze the current code handler and set the next.
         case FUNCTION =>
           if (VOID == node.typ) codeHandler << ByteCodes.RETURN
-          codeHandler.print
-          println("===")
+          codeHandler.log(logger)
 
           try {
-            codeHandler.freeze
+            codeHandler.freeze()
           } catch {
             case c: CodeFreezingException => logger.error(s"Error in method ${obj.identifier}.", c)
             case r: RuntimeException => logger.error(s"Error in method ${obj.identifier}.", r)
