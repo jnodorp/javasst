@@ -154,6 +154,7 @@ class BytecodeGenerator(val filename: String, val ast: Ast[JavaSstNode], val cla
         // Ignore class nodes since we already added them in the first pass.
         case CLASS =>
           constructor << ByteCodes.RETURN
+          logger.trace("Constructor:")
           constructor.log(logger)
           constructor.freeze()
 
@@ -174,7 +175,7 @@ class BytecodeGenerator(val filename: String, val ast: Ast[JavaSstNode], val cla
           } else {
             val els: String = codeHandler.getFreshLabel("EXP_ELSE")
             val end: String = codeHandler.getFreshLabel("EXP_END")
-            codeHandler << If_ICmpNe(els) << ICONST_0 << Goto(end) << Label(els) << ICONST_1
+            codeHandler << If_ICmpNe(els) << ICONST_1 << Goto(end) << Label(els) << ICONST_0
 
             if (node.parent.get.link.isDefined) codeHandler << Label(end)
           }
@@ -190,6 +191,7 @@ class BytecodeGenerator(val filename: String, val ast: Ast[JavaSstNode], val cla
         // Freeze the current code handler and set the next.
         case FUNCTION =>
           if (VOID == node.typ) codeHandler << ByteCodes.RETURN
+          logger.trace(node.obj.identifier + ":")
           codeHandler.log(logger)
 
           try {
@@ -210,7 +212,7 @@ class BytecodeGenerator(val filename: String, val ast: Ast[JavaSstNode], val cla
           } else {
             val els: String = codeHandler.getFreshLabel("EXP_ELSE")
             val end: String = codeHandler.getFreshLabel("EXP_END")
-            codeHandler << If_ICmpLe(els) << ICONST_0 << Goto(end) << Label(els) << ICONST_1
+            codeHandler << If_ICmpLe(els) << ICONST_1 << Goto(end) << Label(els) << ICONST_0
 
             if (node.parent.get.link.isDefined) codeHandler << Label(end)
           }
@@ -226,7 +228,7 @@ class BytecodeGenerator(val filename: String, val ast: Ast[JavaSstNode], val cla
           } else {
             val els: String = codeHandler.getFreshLabel("EXP_ELSE")
             val end: String = codeHandler.getFreshLabel("EXP_END")
-            codeHandler << If_ICmpLt(els) << ICONST_0 << Goto(end) << Label(els) << ICONST_1
+            codeHandler << If_ICmpLt(els) << ICONST_1 << Goto(end) << Label(els) << ICONST_0
 
             if (node.parent.get.link.isDefined) codeHandler << Label(end)
           }
@@ -254,7 +256,7 @@ class BytecodeGenerator(val filename: String, val ast: Ast[JavaSstNode], val cla
           } else {
             val els: String = codeHandler.getFreshLabel("EXP_ELSE")
             val end: String = codeHandler.getFreshLabel("EXP_END")
-            codeHandler << If_ICmpGe(els) << ICONST_0 << Goto(end) << Label(els) << ICONST_1
+            codeHandler << If_ICmpGe(els) << ICONST_1 << Goto(end) << Label(els) << ICONST_0
 
             if (node.parent.get.link.isDefined) codeHandler << Label(end)
           }
@@ -270,7 +272,7 @@ class BytecodeGenerator(val filename: String, val ast: Ast[JavaSstNode], val cla
           } else {
             val els: String = codeHandler.getFreshLabel("EXP_ELSE")
             val end: String = codeHandler.getFreshLabel("EXP_END")
-            codeHandler << If_ICmpGt(els) << ICONST_0 << Goto(end) << Label(els) << ICONST_1
+            codeHandler << If_ICmpGt(els) << ICONST_1 << Goto(end) << Label(els) << ICONST_0
 
             if (node.parent.get.link.isDefined) codeHandler << Label(end)
           }

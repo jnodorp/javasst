@@ -17,7 +17,7 @@ class CodeHandler private[cafebabe](c: CodeAttributeInfo, cp: ConstantPool, val 
   import ClassFileTypes._
 
   protected[cafebabe] val constantPool: ConstantPool = cp
-  protected[cafebabe] val argSlotMap: Map[Int, (String, Int)] = {
+  lazy protected[cafebabe] val argSlotMap: Map[Int, (String, Int)] = {
     var acc: Int = 0
     (for (((tpe, sz), arg) <- argTypesAndBytes.zipWithIndex) yield {
       val s = acc

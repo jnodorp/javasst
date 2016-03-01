@@ -9,7 +9,7 @@
 
         <filter class="ch.qos.logback.classic.filter.LevelFilter">
             <level>DEBUG</level>
-            <onMatch>DENY</onMatch>
+            <onMatch>ACCEPT</onMatch>
         </filter>
         <filter class="ch.qos.logback.classic.filter.LevelFilter">
             <level>INFO</level>
@@ -56,7 +56,7 @@
         </filter>
     </appender>
 
-    <root level="debug">
+    <root level="info">
         <appender-ref ref="stdout"/>
         <appender-ref ref="stderr"/>
     </root>

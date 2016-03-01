@@ -1,12 +1,12 @@
 import java.io.{File, FileNotFoundException, IOException}
 import java.nio.file.{Files, Path}
+import javasst.Analyzers
 import javasst.ast.JavaSstNode
 import javasst.bytecode.BytecodeGenerator
 import javasst.parser.JavaSstParser
 import javasst.scanner.JavaSstScanner
 
 import com.typesafe.scalalogging.Logger
-import compiler.Analyzers
 import compiler.ast.Ast
 import org.slf4j.LoggerFactory
 

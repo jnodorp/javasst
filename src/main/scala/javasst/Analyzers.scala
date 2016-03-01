@@ -1,4 +1,4 @@
-package compiler
+package javasst
 
 import java.util.concurrent.TimeoutException
 
