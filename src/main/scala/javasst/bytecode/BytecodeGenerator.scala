@@ -80,6 +80,18 @@ class BytecodeGenerator(val filename: String, val ast: Ast[JavaSstNode], val cla
   def this(filename: String, ast: Ast[JavaSstNode]) {
     this(filename, ast, ast.root.obj.identifier)
 
+    var errors: Seq[Option[String]] = Seq()
+    errors :+= Analyzers.allDeclared(ast)
+    errors :+= Analyzers.unassignedVariables(ast)
+    errors :+= Analyzers.unusedVariables(ast)
+    errors :+= Analyzers.returnStatements(ast)
+
+    if (errors.exists(_.isDefined)) {
+      logger.error(s"Compilation of $filename failed due to the following error(s): ")
+      errors.filter(_.isDefined).foreach(e => logger.error("\t" + e.get))
+      throw new RuntimeException
+    }
+
     classFile.setSourceFile(filename)
     classFile.setFlags(0x00)
     val methodHandler: MethodHandler = classFile.addConstructor(Nil)
@@ -142,7 +154,7 @@ class BytecodeGenerator(val filename: String, val ast: Ast[JavaSstNode], val cla
           node.left.get.clazz match {
             case FIELD => codeHandler << PutField(className, node.left.get.obj.identifier, node.right.get.typ)
             case PARAMETER => codeHandler << IStore(parameters.indexOf(node.left.get.obj) + 1)
-            case VARIABLE => codeHandler << IStore(variables.indexOf(node.left.get.obj.identifier) + 1); codeHandler.getFreshVar
+            case VARIABLE => codeHandler << IStore(variables.indexOf(node.left.get.obj.identifier) + parameters.size + 1); codeHandler.getFreshVar
             case _ => logger.error(s"Cannot reassign ${node.left.get.clazz}.")
           }
 
@@ -311,7 +323,7 @@ class BytecodeGenerator(val filename: String, val ast: Ast[JavaSstNode], val cla
         case VARIABLE =>
           val parent = node.parent.get
           if (!(parent.left.isDefined && parent.left.get == node && parent.clazz == ASSIGNMENT))
-            codeHandler << ILoad(variables.indexOf(node.obj.identifier) + 1)
+            codeHandler << ILoad(variables.indexOf(node.obj.identifier) + parameters.size + 1)
 
         // Handle end of 'while'.
         case WHILE => codeHandler << Goto(elseLabel) << Label(endLabel)

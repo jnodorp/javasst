@@ -1,6 +1,5 @@
 import java.io.{File, FileNotFoundException, IOException}
 import java.nio.file.{Files, Path}
-import javasst.Analyzers
 import javasst.ast.JavaSstNode
 import javasst.bytecode.BytecodeGenerator
 import javasst.parser.JavaSstParser
@@ -74,8 +73,6 @@ object Main {
 
     val parser: JavaSstParser = new JavaSstParser(scanner)
     val ast: Ast[JavaSstNode] = parser.parse
-
-    ast.foreach(Analyzers.allDeclared)
 
     val name: String = new File(args(0)).getName
     val bytecode: BytecodeGenerator = new BytecodeGenerator(name, ast)
