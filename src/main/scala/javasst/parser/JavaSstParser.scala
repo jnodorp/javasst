@@ -105,7 +105,7 @@ class JavaSstParser(override val scanner: Scanner[JavaSstToken, JavaSstType])
       }
     })
 
-    if(CURLY_BRACE_CLOSE != current.typ) {
+    if (CURLY_BRACE_CLOSE != current.typ) {
       error(CURLY_BRACE_OPEN)
     }
   }
@@ -468,37 +468,19 @@ class JavaSstParser(override val scanner: Scanner[JavaSstToken, JavaSstType])
     * @return TODO: Documentation.
     */
   private def simpleExpression(): JavaSstNode = {
-    val node: JavaSstNode = term()
-    val parent: JavaSstNode = new JavaSstNode()
+    var node: JavaSstNode = term()
     token(Seq(PLUS, MINUS)).repeat(() => {
-      var p: JavaSstNode = parent
-      if (p.clazz != null) {
-        p = new JavaSstNode()
-        p.clazz = current.typ match {
-          case PLUS => JavaSstNodeType.PLUS
-          case MINUS => JavaSstNodeType.MINUS
-        }
-        p.typ = JavaSstNodeType.INTEGER
-        if (parent.right.isDefined) {
-          p.left = parent.right.get
-        }
-        parent.right = p
-      } else {
-        p.clazz = current.typ match {
-          case PLUS => JavaSstNodeType.PLUS
-          case MINUS => JavaSstNodeType.MINUS
-        }
-        p.typ = JavaSstNodeType.INTEGER
+      val nodeClazz = current.typ match {
+        case PLUS => JavaSstNodeType.PLUS
+        case MINUS => JavaSstNodeType.MINUS
       }
 
       next()
-      p.right = term()
+      val old: JavaSstNode = node
+      node = new JavaSstNode(nodeClazz, JavaSstNodeType.INTEGER)
+      node.left = old
+      node.right = term()
     })
-
-    if (parent.clazz != null) {
-      parent.left = node
-      return parent
-    }
 
     node
   }
@@ -509,37 +491,19 @@ class JavaSstParser(override val scanner: Scanner[JavaSstToken, JavaSstType])
     * @return TODO: Documentation.
     */
   private def term(): JavaSstNode = {
-    val node: JavaSstNode = factor()
-    val parent: JavaSstNode = new JavaSstNode()
+    var node: JavaSstNode = factor()
     token(Seq(TIMES, SLASH)).repeat(() => {
-      var p: JavaSstNode = parent
-      if (p.clazz != null) {
-        p = new JavaSstNode()
-        p.clazz = current.typ match {
-          case TIMES => JavaSstNodeType.TIMES
-          case SLASH => JavaSstNodeType.SLASH
-        }
-        p.typ = JavaSstNodeType.INTEGER
-        if (parent.left.isDefined) {
-          p.right = parent.left.get
-        }
-        parent.left = p
-      } else {
-        p.clazz = current.typ match {
-          case TIMES => JavaSstNodeType.TIMES
-          case SLASH => JavaSstNodeType.SLASH
-        }
-        p.typ = JavaSstNodeType.INTEGER
+      val nodeClazz = current.typ match {
+        case TIMES => JavaSstNodeType.TIMES
+        case SLASH => JavaSstNodeType.SLASH
       }
 
       next()
-      p.left = factor()
+      val old: JavaSstNode = node
+      node = new JavaSstNode(nodeClazz, JavaSstNodeType.INTEGER)
+      node.left = old
+      node.right = factor()
     })
-
-    if (parent.clazz != null) {
-      parent.right = node
-      return parent
-    }
 
     node
   }
