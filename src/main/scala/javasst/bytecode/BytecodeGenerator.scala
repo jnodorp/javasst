@@ -182,7 +182,8 @@ class BytecodeGenerator(val filename: String, val ast: Ast[JavaSstNode], val cla
 
         // Load field if it is not the left hand side of an assignment.
         case FIELD =>
-          if (!(node.parent.get.left.get == node && node.parent.get.clazz == ASSIGNMENT))
+          val parent = node.parent.get
+          if (!(parent.left.isDefined && parent.left.get == node && parent.clazz == ASSIGNMENT))
             codeHandler << GetField(className, obj.identifier, obj.typ)
 
         // Ignore declarations during second run.
@@ -308,7 +309,8 @@ class BytecodeGenerator(val filename: String, val ast: Ast[JavaSstNode], val cla
 
         // Load local variable if it is not the left hand side of an assignment.
         case VARIABLE =>
-          if (!(node.parent.get.left.get == node && node.parent.get.clazz == ASSIGNMENT))
+          val parent = node.parent.get
+          if (!(parent.left.isDefined && parent.left.get == node && parent.clazz == ASSIGNMENT))
             codeHandler << ILoad(variables.indexOf(node.obj.identifier) + 1)
 
         // Handle end of 'while'.
